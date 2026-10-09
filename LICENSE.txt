@@ -1,0 +1,42 @@
+Hitch Countdown
+Copyright (c) 2026 Dixit Suthar. All rights reserved.
+
+1. Ownership
+   Hitch Countdown, including its source code, design, text, icon and other
+   artwork (the "App"), is the property of Dixit Suthar and is protected by
+   copyright law.
+
+2. What you may do
+   You may use the App, free of charge, for your own personal or internal
+   work scheduling, by opening it at its official web address or through an
+   official app-store listing published by the copyright holder.
+
+3. What you may not do without written permission
+   You may not copy, modify, adapt, translate, merge, publish, distribute,
+   sublicense, sell, rent or host the App or any part of it, or create
+   derivative works from it, or remove or alter any copyright notice in it.
+
+   The source code is visible in this repository so the App can be served
+   to its users. That visibility does not grant any licence to reuse it.
+
+4. Third-party components
+   The App includes the Outfit and Manrope typefaces, which belong to their
+   respective authors and are licensed under the SIL Open Font License 1.1.
+   See fonts/Outfit-LICENSE.txt and fonts/Manrope-LICENSE.txt. Nothing in
+   this licence restricts your rights to those fonts under their own licence.
+
+5. No warranty
+   THE APP IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. DATES, COUNTS AND
+   ESTIMATES SHOWN BY THE APP ARE FOR PLANNING ONLY. CONFIRM CREW CHANGES,
+   TRAVEL AND PAY WITH YOUR EMPLOYER.
+
+6. Limitation of liability
+   TO THE EXTENT PERMITTED BY LAW, THE COPYRIGHT HOLDER SHALL NOT BE LIABLE
+   FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF, OR
+   INABILITY TO USE, THE APP.
+
+7. Permission requests
+   To ask for permission to use the App in a way not allowed above, write
+   to Dxsuthar009@gmail.com.

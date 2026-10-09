@@ -18,7 +18,15 @@ Crew change countdown and rotation calendar for rig, offshore and other hitch wo
 | `fonts/` | Outfit and Manrope (SIL Open Font License), bundled for offline use |
 | `icon.png` | App icon |
 | `privacy-policy.html` | Privacy policy |
+| `manifest.webmanifest`, `sw.js`, `icon-*.png` | Add to Home screen and offline support |
+| `LICENSE.txt` | Licence |
 
 The app is plain HTML, CSS and JavaScript with no build step. Open `index.html` to run it.
+
+## Licence
+
+Copyright © 2026 Dixit Suthar. All rights reserved.
+
+This is not open-source software. The code is public so the app can be served to its users; it may not be copied, modified or redistributed without written permission. See [LICENSE.txt](LICENSE.txt). The bundled Outfit and Manrope fonts are under the SIL Open Font License 1.1 (see the `fonts` folder).
 
 Developed by Dixit Suthar.
