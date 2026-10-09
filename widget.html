@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hitch Countdown Widget</title>
+<link rel="icon" type="image/png" href="icon.png">
+<script>
+(function(){
+  var t = 'light';
+  try{ var d = JSON.parse(window.localStorage.getItem('hitch-data') || 'null'); if(d && d.theme) t = d.theme; }catch(e){}
+  if(t === 'system') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+})();
+</script>
+<style>
+  @font-face{ font-family:'Outfit'; font-weight:100 900; font-display:swap; src:url('fonts/outfit.woff2') format('woff2'); }
+  @font-face{ font-family:'Manrope'; font-weight:200 800; font-display:swap; src:url('fonts/manrope.woff2') format('woff2'); }
+  :root{
+    color-scheme: light;
+    --card:#FFFFFF; --line:#EEEEEC; --ink:#15171C; --dim:#5F6672;
+    --accent:#FF5A1F; --tint:#FFF1E9; --tint-ink:#9A3412;
+    --off-bg:#F1F1EF; --travel-bg:#15171C; --travel-ink:#FFFFFF; --track:#F1F1EF;
+    --shadow: 0 16px 36px rgba(21,23,28,0.10), 0 2px 6px rgba(21,23,28,0.05);
+    --warn:#8A5A00;
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --card:#181B20; --line:#272B33; --ink:#F3F3F1; --dim:#A1A7B1;
+    --accent:#FF6A33; --tint:#3A1E11; --tint-ink:#FFB899;
+    --off-bg:#262A31; --travel-bg:#F3F3F1; --travel-ink:#15171C; --track:#262A31;
+    --shadow: 0 16px 36px rgba(0,0,0,0.4);
+    --warn:#F6E3A6;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: transparent;
+    font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display:flex; align-items:center; justify-content:center;
+    min-height: 100vh; padding: 12px;
+  }
+  .widget{
+    width: 100%; max-width: 340px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 28px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px 18px; color: var(--ink);
+  }
+  .eyebrow{ font-size: 12px; font-weight: 700; color: var(--dim); overflow-wrap: anywhere; }
+  .count-row{ display:flex; align-items:baseline; gap: 10px; margin-top: 4px; }
+  .count{ font-family:'Outfit', system-ui, sans-serif; font-weight: 300; font-size: 76px; line-height: 1; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+  .count-unit{ font-family:'Outfit', system-ui, sans-serif; font-size: 18px; font-weight: 400; color: var(--dim); }
+  .phase{ display:inline-flex; align-items:center; gap: 7px; margin-top: 8px; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--tint); color: var(--tint-ink); }
+  .phase::before{ content:''; width: 7px; height: 7px; border-radius: 4px; background: var(--accent); }
+  .phase.off{ background: var(--off-bg); color: var(--ink); }
+  .phase.off::before{ background: var(--dim); }
+  .phase.travel{ background: var(--travel-bg); color: var(--travel-ink); }
+  .next-date{ font-size: 13px; font-weight: 500; color: var(--dim); margin-top: 10px; }
+  .next-date strong{ color: var(--ink); font-weight: 700; }
+  .track{ margin-top: 12px; height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+  .fill{ height: 100%; border-radius: 4px; background: var(--accent); transition: width .4s ease; }
+  @media (prefers-reduced-motion: reduce){ .fill{ transition:none; } }
+  .updated{ margin-top: 10px; font-size: 11px; font-weight: 500; color: var(--dim); }
+  .fallback-note{ margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--warn); }
+</style>
+</head>
+<body>
+  <div class="widget">
+    <div class="eyebrow" id="eyebrow">Hitch Countdown</div>
+    <div class="count-row">
+      <span class="count" id="count">--</span>
+      <span class="count-unit" id="unit">days</span>
+    </div>
+    <div class="phase" id="phase">Loading…</div>
+    <div class="next-date" id="nextDate"></div>
+    <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
+    <div class="updated" id="updated"></div>
+    <div class="fallback-note" id="fallbackNote" style="display:none;"></div>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+  const DATA_KEY = 'hitch-data';      // v1.3+ : all rotations
+  const OLD_KEY = 'hitch-settings';   // v1.0 / v1.1 : one rotation
+
+  function parseDate(s){
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+  function daysBetween(a,b){
+    const MS = 24*60*60*1000;
+    const da = new Date(a.getFullYear(),a.getMonth(),a.getDate());
+    const db = new Date(b.getFullYear(),b.getMonth(),b.getDate());
+    return Math.round((db-da)/MS);
+  }
+  function addDays(d, n){
+    const r = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    r.setDate(r.getDate()+n);
+    return r;
+  }
+  function fmtDate(d){
+    return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  }
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+  function whole(v){ const n = Math.floor(Number(v)); return isFinite(n) ? n : 0; }
+
+  // Same rules as the main app.
+  function normalize(s){
+    s = s || {};
+    const onDays = clamp(whole(s.onDays) || 14, 1, 365);
+    const offDays = clamp(whole(s.offDays) || 14, 1, 365);
+    const travelOut = clamp(whole(s.travelOut), 0, offDays);
+    const travelHome = clamp(whole(s.travelHome), 0, offDays - travelOut);
+    const startDate = /^\d{4}-\d{2}-\d{2}$/.test(s.startDate || '') && !isNaN(parseDate(s.startDate)) ? s.startDate : todayStr();
+    const shift = (s.shift === 'day' || s.shift === 'night') ? s.shift : 'none';
+    const name = String(s.name == null ? '' : s.name).trim().slice(0, 24);
+    return { onDays, offDays, startDate, travelOut, travelHome, shift, name };
+  }
+
+  async function readStore(key){
+    if(window.storage && typeof window.storage.get === 'function'){
+      try{
+        const res = await window.storage.get(key, false);
+        if(res && res.value) return res.value;
+      }catch(e){}
+    }
+    try{ return window.localStorage.getItem(key); }catch(e){ return null; }
+  }
+
+  async function loadSettings(){
+    try{
+      const raw = await readStore(DATA_KEY);
+      if(raw){
+        const d = JSON.parse(raw);
+        if(d && Array.isArray(d.profiles) && d.profiles.length){
+          const pick = d.profiles.find(p => p && p.id === d.widgetId) ||
+                       d.profiles.find(p => p && p.id === d.activeId) || d.profiles[0];
+          return { settings: normalize(pick), usedFallback: false, many: d.profiles.length > 1, theme: d.theme };
+        }
+      }
+      const old = await readStore(OLD_KEY);
+      if(old){
+        const p = JSON.parse(old);
+        if(p && p.onDays && p.offDays && p.startDate) return { settings: normalize(p), usedFallback: false, many: false, theme: 'light' };
+      }
+    }catch(e){
+      // nothing saved yet in the main app
+    }
+    return { settings: normalize({}), usedFallback: true, many: false, theme: 'light' };
+  }
+
+  function applyTheme(choice){
+    let t = choice === 'dark' ? 'dark' : 'light';
+    if(choice === 'system') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+
+  function phaseAt(s, dateObj){
+    const cycleLen = s.onDays + s.offDays;
+    let pos = daysBetween(parseDate(s.startDate), dateObj) % cycleLen;
+    if(pos < 0) pos += cycleLen;
+    const homeEnd = s.onDays + s.travelHome;
+    const outStart = cycleLen - s.travelOut;
+    const toHitch = cycleLen - pos;
+    if(pos < s.onDays) return { kind:'on', day: pos+1, total: s.onDays, left: s.onDays - pos, toHitch };
+    if(pos < homeEnd) return { kind:'travelHome', day: pos - s.onDays + 1, total: s.travelHome, left: homeEnd - pos, toHitch };
+    if(pos < outStart) return { kind:'off', day: pos - homeEnd + 1, total: outStart - homeEnd, left: outStart - pos, toHitch };
+    return { kind:'travelOut', day: pos - outStart + 1, total: s.travelOut, left: toHitch, toHitch };
+  }
+
+  async function render(){
+    const { settings, usedFallback, many, theme } = await loadSettings();
+    applyTheme(theme);
+    const today = new Date();
+    const p = phaseAt(settings, today);
+
+    const phaseEl = document.getElementById('phase');
+    const fallbackEl = document.getElementById('fallbackNote');
+
+    let count, next;
+    if(p.kind === 'on'){
+      count = p.left;
+      const shift = settings.shift === 'day' ? ' · days' : settings.shift === 'night' ? ' · nights' : '';
+      phaseEl.textContent = 'On hitch'+shift+' — home in';
+      phaseEl.className = 'phase on';
+      next = 'Crew change: <strong>'+fmtDate(addDays(today, p.left))+'</strong>';
+    } else if(p.kind === 'travelHome'){
+      count = p.left;
+      phaseEl.textContent = 'Travel day — home in';
+      phaseEl.className = 'phase travel';
+      next = 'Home: <strong>'+fmtDate(addDays(today, p.left))+'</strong>';
+    } else if(p.kind === 'off'){
+      count = p.toHitch;
+      phaseEl.textContent = 'Off hitch — back out in';
+      phaseEl.className = 'phase off';
+      next = settings.travelOut > 0
+        ? 'Leave home: <strong>'+fmtDate(addDays(today, p.left))+'</strong>'
+        : 'Crew change: <strong>'+fmtDate(addDays(today, p.toHitch))+'</strong>';
+    } else {
+      count = p.left;
+      phaseEl.textContent = 'Travel day — on hitch in';
+      phaseEl.className = 'phase travel';
+      next = 'Hitch starts: <strong>'+fmtDate(addDays(today, p.left))+'</strong>';
+    }
+
+    document.getElementById('eyebrow').textContent = many && settings.name ? 'Hitch Countdown · ' + settings.name : 'Hitch Countdown';
+    document.getElementById('count').textContent = count;
+    document.getElementById('unit').textContent = 'day'+(count===1?'':'s');
+    document.getElementById('nextDate').innerHTML = next;
+    document.getElementById('fill').style.width = Math.round((p.day/p.total)*100)+'%';
+    document.getElementById('updated').textContent = 'Updated '+today.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+
+    if(usedFallback){
+      fallbackEl.style.display = 'block';
+      fallbackEl.textContent = 'No saved rotation found — showing default 14/14. Set your rotation in the main Hitch Countdown app.';
+    } else {
+      fallbackEl.style.display = 'none';
+    }
+  }
+
+  render();
+  // Keep the widget fresh if left open across a day change
+  setInterval(render, 60 * 1000);
+  // Pick up a new rotation or theme as soon as the main app saves one
+  window.addEventListener('storage', (e)=>{ if(!e.key || e.key === DATA_KEY || e.key === OLD_KEY) render(); });
+})();
+</script>
+</body>
+</html>

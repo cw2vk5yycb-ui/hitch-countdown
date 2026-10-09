@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF" id="themeColor">
+<title>Hitch Countdown</title>
+<link rel="icon" type="image/png" href="icon.png">
+<script>
+/* Pick the saved theme before the first paint so the screen never flashes the wrong one. */
+(function(){
+  var t = 'light';
+  try{ var d = JSON.parse(window.localStorage.getItem('hitch-data') || 'null'); if(d && d.theme) t = d.theme; }catch(e){}
+  if(t === 'system') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+})();
+</script>
+<style>
+  /* Fonts are bundled with the app so it looks the same with no signal. */
+  @font-face{ font-family:'Outfit'; font-weight:100 900; font-display:swap; src:url('fonts/outfit.woff2') format('woff2'); }
+  @font-face{ font-family:'Manrope'; font-weight:200 800; font-display:swap; src:url('fonts/manrope.woff2') format('woff2'); }
+
+  :root{
+    color-scheme: light;
+    --bg:#FFFFFF; --card:#FFFFFF; --soft:#F6F6F4; --line:#EEEEEC; --line-strong:#DDDDDA;
+    --ink:#15171C; --dim:#5F6672;
+    --accent:#FF5A1F; --accent-ink:#2A1206; --accent-text:#C2410C;
+    --tint:#FFF1E9; --tint-ink:#9A3412;
+    --off-bg:#F1F1EF; --off-ink:#5F6672;
+    --travel-bg:#15171C; --travel-ink:#FFFFFF;
+    --track:#F1F1EF;
+    --shadow: 0 16px 36px rgba(21,23,28,0.07), 0 2px 6px rgba(21,23,28,0.04);
+    --shadow-sm: 0 6px 18px rgba(21,23,28,0.05);
+    --warn-bg:#FFF6DC; --warn-line:#EBCB73; --warn-ink:#5E4500;
+    --danger:#B42318; --danger-line:#F0B8B2;
+    --bar:#FFFFFF; --seg-on:#FFFFFF;
+    --display:'Outfit', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+    --body:'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0F1114; --card:#181B20; --soft:#1E2228; --line:#272B33; --line-strong:#383D47;
+    --ink:#F3F3F1; --dim:#A1A7B1;
+    --accent:#FF6A33; --accent-ink:#1F0C03; --accent-text:#FF9063;
+    --tint:#3A1E11; --tint-ink:#FFB899;
+    --off-bg:#262A31; --off-ink:#AEB4BE;
+    --travel-bg:#F3F3F1; --travel-ink:#15171C;
+    --track:#262A31;
+    --shadow: 0 16px 36px rgba(0,0,0,0.38);
+    --shadow-sm: 0 6px 18px rgba(0,0,0,0.3);
+    --warn-bg:#2E2610; --warn-line:#6B5514; --warn-ink:#F6E3A6;
+    --danger:#FF8F85; --danger-line:#6A3432;
+    --bar:#14171B; --seg-on:#3A404B;
+  }
+  *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.45;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+  }
+  button, input, select, textarea{ font: inherit; color: inherit; }
+  button{ cursor: pointer; }
+  svg{ display:block; }
+  .wrap{
+    max-width: 720px;
+    margin: 0 auto;
+    padding: calc(28px + env(safe-area-inset-top)) 20px calc(112px + env(safe-area-inset-bottom));
+  }
+  @media (max-width: 360px){ .wrap{ padding-left: 14px; padding-right: 14px; } }
+
+  /* ---- Screen header ---- */
+  .head{ display:flex; align-items:flex-end; justify-content:space-between; gap: 12px; margin-bottom: 18px; }
+  .head .cap{ font-size: 13px; font-weight: 600; color: var(--dim); letter-spacing: .2px; }
+  .head h1{ margin: 2px 0 0; font-family: var(--display); font-weight: 600; font-size: 32px; letter-spacing: -.6px; line-height: 1.1; }
+  .round{
+    width: 44px; height: 44px; border-radius: 22px; flex: none; padding: 0;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    display:flex; align-items:center; justify-content:center; box-shadow: var(--shadow-sm);
+  }
+  .round:focus-visible, .chip:focus-visible, .btn:focus-visible, .tab-btn:focus-visible, .step:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---- Cards ---- */
+  .card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+  .card.flat{ background: var(--soft); border-color: transparent; box-shadow: none; }
+  .card h2{ margin: 0 0 14px; font-family: var(--display); font-size: 19px; font-weight: 500; letter-spacing: -.2px; }
+  .label, .field label{ font-size: 13px; font-weight: 700; color: var(--dim); }
+  .sub{ font-size: 13px; font-weight: 500; color: var(--dim); margin: -6px 0 14px; overflow-wrap: anywhere; }
+
+  /* ---- Reminder banner ---- */
+  .banner{
+    display:flex; align-items:center; gap: 12px;
+    background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink);
+    border-radius: 20px; padding: 12px 12px 12px 16px; margin-bottom: 14px;
+    font-size: 14px; font-weight: 600;
+  }
+  .banner .grow{ flex: 1; }
+  .banner strong{ font-weight: 800; }
+  .banner button{ min-height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--warn-line); background: transparent; color: var(--warn-ink); font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+  /* ---- Hero ---- */
+  .hero{ display:flex; flex-direction:column; align-items:center; gap: 16px; padding: 26px 20px 22px; border-radius: 32px; }
+  .ring-wrap{ position: relative; width: min(252px, 68vw); aspect-ratio: 1; }
+  .ring-wrap svg{ width: 100%; height: 100%; }
+  .ring-track{ fill: none; stroke: var(--track); stroke-width: 14; }
+  .ring-arc{ fill: none; stroke: var(--accent); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
+  @media (prefers-reduced-motion: reduce){ .ring-arc{ transition: none; } }
+  .ring-in{ position:absolute; inset: 0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 2px; padding: 0 30px; text-align: center; }
+  .big-number{
+    font-family: var(--display); font-weight: 300; font-size: clamp(84px, 30vw, 116px);
+    line-height: .95; letter-spacing: -.045em; font-variant-numeric: tabular-nums;
+  }
+  .big-number.long{ font-size: clamp(60px, 21vw, 84px); }
+  .hero-cap{ font-size: 14px; font-weight: 600; color: var(--dim); line-height: 1.25; }
+  .pill{
+    display:inline-flex; align-items:center; gap: 8px; padding: 9px 16px; border-radius: 999px;
+    background: var(--tint); color: var(--tint-ink); font-size: 13px; font-weight: 700;
+  }
+  .pill .dot{ width: 8px; height: 8px; border-radius: 4px; background: var(--accent); }
+  .pill.off{ background: var(--off-bg); color: var(--ink); }
+  .pill.off .dot{ background: var(--dim); }
+  .pill.travel{ background: var(--travel-bg); color: var(--travel-ink); }
+  .pill.travel .dot{ background: var(--accent); }
+  .hero-sub{ font-size: 14px; font-weight: 500; color: var(--dim); text-align: center; }
+  .hero-sub strong{ color: var(--ink); font-weight: 700; white-space: nowrap; }
+
+  .pair{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .mini{ border-radius: 24px; padding: 16px; margin: 0; box-shadow: var(--shadow-sm); display:flex; flex-direction:column; gap: 10px; }
+  .icon{ width: 36px; height: 36px; border-radius: 12px; display:flex; align-items:center; justify-content:center; flex: none; }
+  .icon.on{ background: var(--accent); color: var(--accent-ink); }
+  .icon.off{ background: var(--off-bg); color: var(--ink); }
+  .icon.travel{ background: var(--travel-bg); color: var(--travel-ink); }
+  .mini .when{ font-family: var(--display); font-size: 19px; font-weight: 500; letter-spacing: -.2px; }
+  .mini .away{ font-size: 12px; font-weight: 700; color: var(--accent-text); }
+
+  .strip{ display:flex; align-items:center; justify-content:space-between; gap: 12px; padding: 14px 14px 14px 18px; border-radius: 24px; }
+  .strip .val{ font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+
+  /* ---- Chips and buttons ---- */
+  .chips{ display:flex; flex-wrap:wrap; gap: 8px; }
+  .chip{
+    min-height: 44px; padding: 0 16px; border-radius: 14px;
+    border: 1px solid var(--line-strong); background: var(--card); color: var(--ink);
+    font-size: 14px; font-weight: 700;
+  }
+  .chip.num{ font-family: var(--display); font-size: 16px; font-weight: 500; }
+  .chip.active{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .chip:disabled{ opacity: .45; cursor: default; }
+  .btn{
+    min-height: 48px; padding: 0 18px; border-radius: 16px;
+    border: 1px solid var(--line-strong); background: var(--card); color: var(--ink);
+    font-size: 14px; font-weight: 700;
+  }
+  .btn.primary{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: 0 10px 24px rgba(255,90,31,0.26); }
+  .btn.primary.saved{ background: var(--tint); border-color: var(--tint); color: var(--tint-ink); box-shadow: none; }
+  .btn.danger{ color: var(--danger); border-color: var(--danger-line); }
+  .btn.link{ border: 0; background: none; color: var(--dim); text-decoration: underline; padding: 0 6px; }
+  .btn.full{ width: 100%; min-height: 54px; font-size: 16px; }
+  .actions{ display:flex; flex-wrap:wrap; gap: 10px; align-items:center; }
+  .note, .hint{ font-size: 12.5px; font-weight: 500; color: var(--dim); margin-top: 10px; min-height: 16px; }
+  .note.warn{ color: var(--danger); font-weight: 700; }
+
+  /* ---- Rotation chips on Home ---- */
+  .profiles{ margin-bottom: 14px; }
+
+  /* ---- Form ---- */
+  .rows{ display:flex; flex-direction:column; }
+  .rowline{ min-height: 68px; display:flex; align-items:center; justify-content:space-between; gap: 12px; border-top: 1px solid var(--line); }
+  .rowline:first-child{ border-top: 0; }
+  .rowline .t{ font-size: 16px; font-weight: 700; }
+  .rowline .s{ font-size: 12px; font-weight: 500; color: var(--dim); }
+  .stepper{ display:flex; align-items:center; gap: 4px; flex: none; }
+  .step{ width: 44px; height: 44px; border-radius: 22px; border: 0; padding: 0; background: var(--off-bg); color: var(--ink); display:flex; align-items:center; justify-content:center; flex: none; }
+  .step.plus{ background: var(--tint); color: var(--tint-ink); }
+  .stepper input{
+    width: 64px; height: 44px; border: 0; background: transparent; text-align: center; padding: 0;
+    font-family: var(--display); font-size: 28px; font-weight: 400; letter-spacing: -.5px; font-variant-numeric: tabular-nums;
+    -moz-appearance: textfield; appearance: textfield; border-radius: 10px;
+  }
+  .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+  .field{ display:flex; flex-direction:column; gap: 8px; min-width: 0; }
+  .field + .field, .field + .grid2, .grid2 + .field, .rows + .field, .field + .rows{ margin-top: 16px; }
+  .input, textarea, select{
+    width: 100%; min-height: 54px; padding: 0 16px; border-radius: 16px;
+    border: 1px solid var(--line-strong); background: var(--card); color: var(--ink);
+    font-size: 16px; font-weight: 500;
+  }
+  .input.display{ font-family: var(--display); font-size: 18px; font-weight: 400; }
+  .input:focus-visible, textarea:focus-visible, select:focus-visible, .stepper input:focus-visible{ outline: 2px solid var(--accent); outline-offset: 1px; }
+  textarea{ min-height: 100px; padding: 12px 16px; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; resize: vertical; }
+  .grid2 .field{ margin-top: 0; }
+  .grid2{ display:grid; align-items: end; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }
+  .seg{ padding: 4px; border-radius: 16px; background: var(--off-bg); display:grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
+  .seg button{ min-height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--dim); font-size: 14px; font-weight: 600; padding: 0 6px; }
+  .seg button.active{ background: var(--seg-on); color: var(--ink); font-weight: 700; box-shadow: 0 2px 6px rgba(21,23,28,0.10); }
+  .seg button:focus-visible{ outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---- Calendar ---- */
+  .cal-legend{ display:flex; gap: 16px; flex-wrap: wrap; margin: 14px 0 0; font-size: 12.5px; font-weight: 700; color: var(--dim); }
+  .cal-legend span{ display:flex; align-items:center; gap: 7px; }
+  .swatch{ width: 12px; height: 12px; border-radius: 6px; display:inline-block; }
+  .swatch.on{ background: var(--accent); }
+  .swatch.off{ background: var(--off-bg); border: 1px solid var(--line-strong); }
+  .swatch.travel{ background: var(--travel-bg); }
+  .swatch.today{ background: transparent; border: 2px solid var(--ink); }
+  .months-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
+  .month-card{ background: var(--card); border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow-sm); padding: 18px 16px 16px; }
+  .month-card h3{ margin: 0 4px 12px; font-family: var(--display); font-size: 20px; font-weight: 500; letter-spacing: -.3px; }
+  .dow-row{ display:grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 8px; }
+  .dow-row span{ font-size: 11px; font-weight: 700; color: var(--dim); text-align:center; }
+  .day-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .day-cell{
+    aspect-ratio: 1; border-radius: 50%; display:flex; align-items:center; justify-content:center;
+    font-family: var(--display); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums;
+  }
+  .day-cell.empty{ visibility:hidden; }
+  .day-cell.on{ background: var(--accent); color: var(--accent-ink); }
+  .day-cell.off{ background: var(--off-bg); color: var(--off-ink); }
+  .day-cell.travel{ background: var(--travel-bg); color: var(--travel-ink); }
+  .day-cell.today{ box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink); font-weight: 700; }
+
+  /* ---- Upcoming ---- */
+  .upcoming-list{ display:flex; flex-direction:column; }
+  .upcoming-item{ min-height: 62px; display:flex; align-items:center; gap: 14px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .upcoming-item:first-child{ border-top: 0; }
+  .upcoming-item .icon{ border-radius: 20px; width: 40px; height: 40px; }
+  .upcoming-item .mid{ flex: 1; min-width: 0; }
+  .upcoming-item .label{ font-size: 15px; font-weight: 700; }
+  .upcoming-item .dates{ font-size: 13px; font-weight: 500; color: var(--dim); }
+  .upcoming-item .dates a{ color: var(--accent-text); font-weight: 700; margin-left: 6px; white-space: nowrap; }
+  .upcoming-item .days-out{ font-family: var(--display); font-size: 15px; font-weight: 500; color: var(--dim); white-space: nowrap; }
+  .upcoming-item:first-child .days-out{ color: var(--accent-text); }
+
+  /* ---- Tally ---- */
+  .tally-wrap{ overflow-x: auto; }
+  .tally{ width:100%; border-collapse: collapse; font-size: 14px; }
+  .tally th, .tally td{ padding: 12px 6px; text-align: right; border-bottom: 1px solid var(--line); }
+  .tally tr:last-child td{ border-bottom: 0; }
+  .tally th:first-child, .tally td:first-child{ text-align: left; padding-left: 0; }
+  .tally th{ font-size: 11px; font-weight: 700; color: var(--dim); vertical-align: bottom; line-height: 1.25; }
+  .tally td{ font-family: var(--display); font-size: 20px; font-weight: 400; font-variant-numeric: tabular-nums; }
+  .tally td:first-child{ font-family: var(--body); font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .tally tr.money td{ font-size: 15px; font-weight: 500; color: var(--accent-text); }
+  .tally tr.money td:first-child{ color: var(--ink); white-space: normal; }
+  .tally .dot{ display:inline-block; width: 10px; height: 10px; border-radius: 5px; margin-right: 8px; }
+
+  .tool h3{ margin: 0 0 12px; font-family: var(--display); font-size: 19px; font-weight: 500; letter-spacing: -.2px; }
+  footer{ margin: 22px 0 0; font-size: 12px; font-weight: 500; color: var(--dim); text-align:center; }
+  footer a{ color: var(--accent-text); }
+
+  /* ---- Bottom navigation ---- */
+  .tabbar{
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--bar); border-top: 1px solid var(--line);
+    padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
+  }
+  .tabbar .in{ max-width: 720px; margin: 0 auto; display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .tab-btn{
+    position: relative; min-height: 54px; border: 0; background: none; border-radius: 16px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 3px;
+    color: var(--dim); font-size: 11px; font-weight: 600;
+  }
+  .tab-btn .ic{ width: 56px; height: 30px; border-radius: 15px; display:flex; align-items:center; justify-content:center; }
+  .tab-btn.active{ color: var(--ink); font-weight: 800; }
+  .tab-btn.active .ic{ background: var(--tint); color: var(--tint-ink); }
+  .tab-btn .flag{ position:absolute; top: 6px; left: calc(50% + 12px); width: 9px; height: 9px; border-radius: 5px; background: var(--accent); border: 2px solid var(--bar); box-sizing: content-box; }
+
+  /* ---- Overlays: first-run setup and share picture ---- */
+  .overlay{
+    position: fixed; inset: 0; z-index: 50;
+    background: var(--bg);
+    display:flex; align-items:flex-start; justify-content:center;
+    overflow-y: auto;
+    padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  .overlay.dim{ background: rgba(10,12,14,.72); }
+  .sheet{ width: 100%; max-width: 460px; margin: auto 0; }
+  .sheet.card{ padding: 26px 22px 22px; border-radius: 32px; margin-bottom: 0; }
+  .sheet h2{ font-family: var(--display); font-size: 30px; font-weight: 600; letter-spacing: -.6px; margin: 6px 0 8px; line-height: 1.1; }
+  .sheet p{ font-size: 15px; color: var(--dim); margin: 0 0 20px; }
+  .steps{ font-size: 13px; font-weight: 800; color: var(--accent-text); }
+  .dots{ display:flex; gap: 6px; margin-bottom: 14px; }
+  .dots i{ width: 28px; height: 5px; border-radius: 3px; background: var(--off-bg); }
+  .dots i.on{ background: var(--accent); }
+  .sheet .actions{ margin-top: 26px; justify-content: space-between; }
+  .share-img{ display:block; width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HOME ============ -->
+  <section class="view" id="view-home">
+    <div class="head">
+      <div>
+        <div class="cap" id="todayLine"></div>
+        <h1>Hitch Countdown</h1>
+      </div>
+      <button type="button" class="round" id="themeQuick" aria-label="Switch to dark mode">
+        <svg id="themeIconMoon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+        <svg id="themeIconSun" hidden aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+
+    <div class="banner" id="banner" hidden role="status">
+      <div class="grow" id="bannerText"></div>
+      <button type="button" id="bannerClose">Dismiss</button>
+    </div>
+
+    <div class="profiles chips" id="profiles" hidden>
+      <span id="profileChips" class="chips"></span>
+    </div>
+
+    <div class="card hero" id="hero">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 252 252" id="ring" role="img" aria-label="Progress">
+          <circle class="ring-track" cx="126" cy="126" r="112"/>
+          <circle class="ring-arc" id="ringArc" cx="126" cy="126" r="112" stroke-dasharray="0 703.7" transform="rotate(-90 126 126)"/>
+        </svg>
+        <div class="ring-in">
+          <div class="big-number" id="bigNumber">--</div>
+          <div class="hero-cap" id="heroCap"></div>
+        </div>
+      </div>
+      <div class="pill" id="pill"><span class="dot" aria-hidden="true"></span><span id="phaseLabel">Loading</span><span aria-hidden="true">·</span><span id="progLeft"></span></div>
+      <div class="hero-sub" id="heroSub"></div>
+    </div>
+
+    <div class="pair" id="nextPair"></div>
+
+    <div class="card flat strip">
+      <div>
+        <div class="label">Rotation</div>
+        <div class="val" id="setupHint"></div>
+      </div>
+      <button type="button" class="btn" id="editBtn">Edit</button>
+    </div>
+
+    <div class="card">
+      <h2>Upcoming crew changes</h2>
+      <div class="upcoming-list" id="upcomingList"></div>
+    </div>
+  </section>
+
+  <!-- ============ CALENDAR ============ -->
+  <section class="view" id="view-calendar" hidden>
+    <div class="head">
+      <div>
+        <div class="cap" id="calSub"></div>
+        <h1>Calendar</h1>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn" id="icsBtn">Add to my calendar</button>
+      <button type="button" class="btn" id="imgBtn">Save as picture</button>
+    </div>
+    <div class="note" id="calNote"></div>
+    <div class="cal-legend">
+      <span><span class="swatch on"></span> On hitch</span>
+      <span><span class="swatch off"></span> Off hitch</span>
+      <span id="legendTravel"><span class="swatch travel"></span> Travel day</span>
+      <span><span class="swatch today"></span> Today</span>
+    </div>
+    <div class="months-grid" id="monthsGrid"></div>
+  </section>
+
+  <!-- ============ TALLY ============ -->
+  <section class="view" id="view-tally" hidden>
+    <div class="head">
+      <div>
+        <div class="cap" id="tallySub"></div>
+        <h1>Tally</h1>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tally-wrap"><table class="tally">
+        <thead><tr><th></th><th id="tallyH1">This year so far</th><th id="tallyH2">Full year</th><th>Next 12 months</th></tr></thead>
+        <tbody id="tallyBody"></tbody>
+      </table></div>
+    </div>
+    <div class="note" id="tallyNote"></div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section class="view" id="view-settings" hidden>
+    <div class="head">
+      <div>
+        <div class="cap">Everything stays on this phone</div>
+        <h1>Settings</h1>
+      </div>
+    </div>
+
+    <div class="card" id="setupPanel">
+      <h2>Rotation</h2>
+      <div class="field">
+        <label for="profileName">Rotation name</label>
+        <input type="text" id="profileName" class="input" maxlength="24" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Quick set — days on / days off</span>
+        <div class="chips" id="presets">
+          <button type="button" class="chip num preset-btn" data-on="14" data-off="14">14/14</button>
+          <button type="button" class="chip num preset-btn" data-on="28" data-off="28">28/28</button>
+          <button type="button" class="chip num preset-btn" data-on="35" data-off="35">35/35</button>
+          <button type="button" class="chip num preset-btn" data-on="56" data-off="56">56/56</button>
+          <button type="button" class="chip num preset-btn" data-on="14" data-off="7">14/7</button>
+          <button type="button" class="chip num preset-btn" data-on="21" data-off="7">21/7</button>
+          <button type="button" class="chip num preset-btn" data-on="28" data-off="14">28/14</button>
+        </div>
+      </div>
+      <div class="rows" style="margin-top:10px;">
+        <div class="rowline">
+          <label class="t" for="onDays">Days on</label>
+          <div class="stepper">
+            <button type="button" class="step" data-for="onDays" data-d="-1" aria-label="One day less on"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+            <input type="number" id="onDays" min="1" max="365" value="14" inputmode="numeric">
+            <button type="button" class="step plus" data-for="onDays" data-d="1" aria-label="One day more on"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          </div>
+        </div>
+        <div class="rowline">
+          <label class="t" for="offDays">Days off</label>
+          <div class="stepper">
+            <button type="button" class="step" data-for="offDays" data-d="-1" aria-label="One day less off"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+            <input type="number" id="offDays" min="1" max="365" value="14" inputmode="numeric">
+            <button type="button" class="step plus" data-for="offDays" data-d="1" aria-label="One day more off"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          </div>
+        </div>
+        <div class="rowline">
+          <div><label class="t" for="travelOut">Travel days out</label><div class="s">Taken from days off</div></div>
+          <div class="stepper">
+            <button type="button" class="step" data-for="travelOut" data-d="-1" aria-label="One travel day out less"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+            <input type="number" id="travelOut" min="0" max="365" value="0" inputmode="numeric">
+            <button type="button" class="step plus" data-for="travelOut" data-d="1" aria-label="One travel day out more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          </div>
+        </div>
+        <div class="rowline">
+          <div><label class="t" for="travelHome">Travel days home</label><div class="s">Taken from days off</div></div>
+          <div class="stepper">
+            <button type="button" class="step" data-for="travelHome" data-d="-1" aria-label="One travel day home less"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+            <input type="number" id="travelHome" min="0" max="365" value="0" inputmode="numeric">
+            <button type="button" class="step plus" data-for="travelHome" data-d="1" aria-label="One travel day home more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="startDate">Current hitch started</label>
+        <input type="date" id="startDate" class="input display">
+      </div>
+      <div class="field">
+        <span class="label">Shift on hitch</span>
+        <div class="seg" id="shifts" role="group" aria-label="Shift on hitch">
+          <button type="button" class="shift-btn" data-shift="none">None</button>
+          <button type="button" class="shift-btn" data-shift="day">Day</button>
+          <button type="button" class="shift-btn" data-shift="night">Night</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="dayRate">Day rate (optional)</label>
+          <input type="number" id="dayRate" class="input display" min="0" step="any" inputmode="decimal" placeholder="0">
+        </div>
+        <div class="field">
+          <label for="currency">Currency</label>
+          <input type="text" id="currency" class="input" maxlength="4" placeholder="$" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <span class="label">Travel days paid</span>
+        <div class="seg" id="payTravel" role="group" aria-label="Travel days paid">
+          <button type="button" class="pay-btn" data-pay="0">No</button>
+          <button type="button" class="pay-btn" data-pay="1">Yes</button>
+        </div>
+      </div>
+      <div class="hint">The day rate is only used for the estimate on the Tally screen. It never leaves this phone.</div>
+      <div style="margin-top:18px;">
+        <button type="button" class="btn primary full" id="saveBtn">Save rotation to this device</button>
+      </div>
+      <div class="note" id="saveNote"></div>
+      <div class="actions" style="margin-top:6px;">
+        <button type="button" class="btn" id="discardBtn" hidden>Discard changes</button>
+        <button type="button" class="btn" id="newProfileBtn">+ New rotation</button>
+        <button type="button" class="btn danger" id="deleteBtn" hidden>Delete rotation</button>
+      </div>
+    </div>
+
+    <div class="card tool">
+      <h3>Appearance</h3>
+      <div class="seg" id="themes" role="group" aria-label="Appearance">
+        <button type="button" class="theme-btn" data-theme-choice="light">Light</button>
+        <button type="button" class="theme-btn" data-theme-choice="dark">Dark</button>
+        <button type="button" class="theme-btn" data-theme-choice="system">Match phone</button>
+      </div>
+    </div>
+
+    <div class="card tool">
+      <h3>Crew change reminder</h3>
+      <div class="chips" id="remind">
+        <button type="button" class="chip remind-btn" data-days="0">Off</button>
+        <button type="button" class="chip remind-btn" data-days="1">1 day before</button>
+        <button type="button" class="chip remind-btn" data-days="3">3 days before</button>
+        <button type="button" class="chip remind-btn" data-days="7">7 days before</button>
+      </div>
+      <div class="hint">Shows a heads-up at the top of Home when a crew change is close. For alerts while the app is closed, use "Add to my calendar".</div>
+    </div>
+
+    <div class="card tool" id="widgetTool">
+      <h3>Widget</h3>
+      <div class="field">
+        <label for="widgetSelect">Widget shows</label>
+        <select id="widgetSelect"></select>
+      </div>
+    </div>
+
+    <div class="card tool">
+      <h3>Backup</h3>
+      <div class="actions">
+        <button type="button" class="btn" id="exportBtn">Save backup file</button>
+        <button type="button" class="btn" id="importBtn">Restore from file</button>
+        <input type="file" id="importFile" accept=".json,application/json,text/plain" hidden>
+        <button type="button" class="btn" id="copyBackupBtn">Copy backup as text</button>
+        <button type="button" class="btn" id="pasteToggleBtn">Restore from text</button>
+      </div>
+      <div id="pasteBox" hidden style="margin-top:12px;">
+        <textarea id="pasteArea" aria-label="Backup text" placeholder="Paste your backup text here" spellcheck="false"></textarea>
+        <div class="actions" style="margin-top:10px;">
+          <button type="button" class="btn primary" id="pasteApplyBtn">Restore this backup</button>
+        </div>
+      </div>
+      <div class="note" id="backupNote"></div>
+    </div>
+
+    <div class="card tool">
+      <h3>Start over</h3>
+      <div class="actions">
+        <button type="button" class="btn" id="resetBtn">Reset this rotation</button>
+        <button type="button" class="btn danger" id="eraseBtn">Erase everything</button>
+      </div>
+      <div class="note" id="resetNote"></div>
+    </div>
+
+    <footer>
+      Appearance, reminder, widget and backup take effect straight away. Only Rotation needs the Save button.<br><br>
+      v2.1 &nbsp;·&nbsp; Developed by Dixit Suthar &nbsp;·&nbsp; <a href="mailto:Dxsuthar009@gmail.com">Dxsuthar009@gmail.com</a>
+    </footer>
+  </section>
+</div>
+
+<nav class="tabbar" aria-label="Main">
+  <div class="in">
+    <button type="button" class="tab-btn active" data-tab="home" aria-current="page">
+      <span class="ic"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
+      <span>Home</span>
+    </button>
+    <button type="button" class="tab-btn" data-tab="calendar">
+      <span class="ic"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+      <span>Calendar</span>
+    </button>
+    <button type="button" class="tab-btn" data-tab="tally">
+      <span class="ic"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span>
+      <span>Tally</span>
+    </button>
+    <button type="button" class="tab-btn" data-tab="settings">
+      <span class="ic"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h8M18 7h2M4 17h2M12 17h8"/><circle cx="15" cy="7" r="2.5"/><circle cx="9" cy="17" r="2.5"/></svg></span>
+      <span>Settings</span>
+      <span class="flag" id="unsavedFlag" hidden aria-label="Unsaved changes"></span>
+    </button>
+  </div>
+</nav>
+
+<!-- First-run setup -->
+<div class="overlay" id="onboard" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="obTitle">
+    <div class="dots" aria-hidden="true"><i id="obDot1" class="on"></i><i id="obDot2"></i><i id="obDot3"></i></div>
+    <div class="steps" id="obSteps">Step 1 of 3</div>
+    <h2 id="obTitle">Your rotation</h2>
+
+    <div class="ob-step" data-step="1">
+      <p>Pick your rotation, or set your own days on and days off.</p>
+      <div class="chips" id="obPresets">
+        <button type="button" class="chip num ob-preset" data-on="14" data-off="14">14/14</button>
+        <button type="button" class="chip num ob-preset" data-on="28" data-off="28">28/28</button>
+        <button type="button" class="chip num ob-preset" data-on="35" data-off="35">35/35</button>
+        <button type="button" class="chip num ob-preset" data-on="56" data-off="56">56/56</button>
+        <button type="button" class="chip num ob-preset" data-on="14" data-off="7">14/7</button>
+        <button type="button" class="chip num ob-preset" data-on="21" data-off="7">21/7</button>
+        <button type="button" class="chip num ob-preset" data-on="28" data-off="14">28/14</button>
+      </div>
+      <div class="card" style="margin-top:16px; padding: 4px 16px;">
+        <div class="rows">
+          <div class="rowline"><label class="t" for="obOn">Days on</label><div class="stepper">
+            <button type="button" class="step" data-for="obOn" data-d="-1" aria-label="One day less on"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+            <input type="number" id="obOn" min="1" max="365" value="14" inputmode="numeric">
+            <button type="button" class="step plus" data-for="obOn" data-d="1" aria-label="One day more on"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          </div></div>
+          <div class="rowline"><label class="t" for="obOff">Days off</label><div class="stepper">
+            <button type="button" class="step" data-for="obOff" data-d="-1" aria-label="One day less off"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+            <input type="number" id="obOff" min="1" max="365" value="14" inputmode="numeric">
+            <button type="button" class="step plus" data-for="obOff" data-d="1" aria-label="One day more off"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ob-step" data-step="2" hidden>
+      <p>Enter the first day of a hitch. Your current one, the last one or the next one all work, the app counts from there.</p>
+      <div class="field">
+        <label for="obStart">Hitch start date</label>
+        <input type="date" id="obStart" class="input display">
+      </div>
+    </div>
+
+    <div class="ob-step" data-step="3" hidden>
+      <p>Optional. Travel days come out of your days off and get their own colour on the calendar.</p>
+      <div class="card" style="padding: 4px 16px;">
+        <div class="rows">
+          <div class="rowline"><label class="t" for="obOut">Travel days out</label><div class="stepper">
+            <button type="button" class="step" data-for="obOut" data-d="-1" aria-label="One travel day out less"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+            <input type="number" id="obOut" min="0" max="365" value="0" inputmode="numeric">
+            <button type="button" class="step plus" data-for="obOut" data-d="1" aria-label="One travel day out more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          </div></div>
+          <div class="rowline"><label class="t" for="obHome">Travel days home</label><div class="stepper">
+            <button type="button" class="step" data-for="obHome" data-d="-1" aria-label="One travel day home less"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+            <input type="number" id="obHome" min="0" max="365" value="0" inputmode="numeric">
+            <button type="button" class="step plus" data-for="obHome" data-d="1" aria-label="One travel day home more"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>
+          </div></div>
+        </div>
+      </div>
+      <div class="field">
+        <span class="label">Shift on hitch</span>
+        <div class="seg" role="group" aria-label="Shift on hitch">
+          <button type="button" class="ob-shift" data-shift="none">None</button>
+          <button type="button" class="ob-shift" data-shift="day">Day</button>
+          <button type="button" class="ob-shift" data-shift="night">Night</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn link" id="obSkip">Skip setup</button>
+      <span class="actions">
+        <button type="button" class="btn" id="obBack" hidden>Back</button>
+        <button type="button" class="btn primary" id="obNext">Next</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Share picture -->
+<div class="overlay dim" id="imgOverlay" hidden>
+  <div class="sheet card" role="dialog" aria-modal="true" aria-label="Schedule picture">
+    <img class="share-img" id="shareImg" alt="Your 12 month hitch schedule">
+    <div class="hint">Press and hold the picture to save or share it, or use the button.</div>
+    <div class="actions" style="margin-top:14px;">
+      <button type="button" class="btn" id="imgClose">Close</button>
+      <button type="button" class="btn primary" id="imgSave">Save / share</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const DOW = ['S','M','T','W','T','F','S'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DATA_KEY = 'hitch-data';        // v1.3+ : all rotations and app settings
+  const OLD_KEY = 'hitch-settings';     // v1.0 / v1.1 : one rotation
+  const DISMISS_KEY = 'hitch-banner-dismissed';
+  const MAX_PROFILES = 6;
+  const REMIND_CHOICES = [0, 1, 3, 7];
+  const THEMES = ['light', 'dark', 'system'];
+  const RING = 2 * Math.PI * 112;
+
+  const $ = id => document.getElementById(id);
+
+  /* ================= Dates ================= */
+  function dateStr(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function todayStr(){ return dateStr(new Date()); }
+  function parseDate(s){
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+  function daysBetween(a,b){
+    const MS = 24*60*60*1000;
+    const da = new Date(a.getFullYear(),a.getMonth(),a.getDate());
+    const db = new Date(b.getFullYear(),b.getMonth(),b.getDate());
+    return Math.round((db-da)/MS);
+  }
+  function addDays(d, n){
+    const r = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    r.setDate(r.getDate()+n);
+    return r;
+  }
+  function fmtDate(d){
+    return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  }
+  function compact(d){ return dateStr(d).replace(/-/g,''); }
+  function plural(n){ return n===1 ? '' : 's'; }
+
+  /* ================= Storage =================
+     Device storage (localStorage), plus the preview host's store when present. */
+  const store = {
+    async get(key){
+      if(window.storage && typeof window.storage.get === 'function'){
+        try{
+          const res = await window.storage.get(key, false);
+          if(res && res.value) return res.value;
+        }catch(e){}
+      }
+      try{ return window.localStorage.getItem(key); }catch(e){ return null; }
+    },
+    async set(key, value){
+      let ok = false;
+      if(window.storage && typeof window.storage.set === 'function'){
+        try{ await window.storage.set(key, value, false); ok = true; }catch(e){}
+      }
+      try{ window.localStorage.setItem(key, value); ok = true; }catch(e){}
+      return ok;
+    },
+    async remove(key){
+      if(window.storage && typeof window.storage.delete === 'function'){
+        try{ await window.storage.delete(key, false); }catch(e){}
+      }
+      try{ window.localStorage.removeItem(key); }catch(e){}
+    }
+  };
+
+  /* ================= Data model ================= */
+  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+  function whole(v){ const n = Math.floor(Number(v)); return isFinite(n) ? n : 0; }
+  function newId(){ return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+  function defaultProfile(name){
+    return { id: newId(), name: name || 'My rotation', onDays: 14, offDays: 14, startDate: todayStr(),
+             travelOut: 0, travelHome: 0, shift: 'none', dayRate: 0, currency: '', payTravel: false };
+  }
+  // Accepts a rotation from any earlier version and fills the gaps.
+  function normalizeProfile(s){
+    s = s || {};
+    const onDays = clamp(whole(s.onDays) || 14, 1, 365);
+    const offDays = clamp(whole(s.offDays) || 14, 1, 365);
+    const travelOut = clamp(whole(s.travelOut), 0, offDays);
+    const travelHome = clamp(whole(s.travelHome), 0, offDays - travelOut);
+    const startDate = /^\d{4}-\d{2}-\d{2}$/.test(s.startDate || '') && !isNaN(parseDate(s.startDate)) ? s.startDate : todayStr();
+    const shift = (s.shift === 'day' || s.shift === 'night') ? s.shift : 'none';
+    const rate = Number(s.dayRate);
+    return {
+      id: (typeof s.id === 'string' && s.id) ? s.id.slice(0, 40) : newId(),
+      name: (String(s.name == null ? '' : s.name).trim().slice(0, 24)) || 'My rotation',
+      onDays, offDays, startDate, travelOut, travelHome, shift,
+      dayRate: isFinite(rate) && rate > 0 ? Math.min(rate, 1e7) : 0,
+      currency: String(s.currency == null ? '' : s.currency).trim().slice(0, 4),
+      payTravel: !!s.payTravel
+    };
+  }
+  function normalizeData(d){
+    d = d || {};
+    let profiles = Array.isArray(d.profiles) ? d.profiles.slice(0, MAX_PROFILES).map(normalizeProfile) : [];
+    const seen = {};
+    profiles.forEach(p => { if(seen[p.id]) p.id = newId(); seen[p.id] = true; });
+    if(!profiles.length) profiles = [defaultProfile()];
+    const has = id => profiles.some(p => p.id === id);
+    return {
+      v: 2,
+      profiles,
+      activeId: has(d.activeId) ? d.activeId : profiles[0].id,
+      widgetId: has(d.widgetId) ? d.widgetId : 'active',
+      remindDays: REMIND_CHOICES.indexOf(Number(d.remindDays)) >= 0 ? Number(d.remindDays) : 3,
+      theme: THEMES.indexOf(d.theme) >= 0 ? d.theme : 'light'
+    };
+  }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+  let data = normalizeData({});   // what is saved on the device
+  let draft = clone(data.profiles[0]);  // working copy of the active rotation
+  let dirty = false;
+
+  function activeProfile(){ return data.profiles.find(p => p.id === data.activeId); }
+  function persist(){ return store.set(DATA_KEY, JSON.stringify(data)); }
+
+  async function loadData(){
+    let source = 'none';
+    try{
+      const raw = await store.get(DATA_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(parsed && Array.isArray(parsed.profiles) && parsed.profiles.length){
+          data = normalizeData(parsed);
+          source = 'device';
+        }
+      }
+      if(source === 'none'){
+        const old = await store.get(OLD_KEY);
+        if(old){
+          const p = JSON.parse(old);
+          if(p && p.onDays && p.offDays && p.startDate){
+            data = normalizeData({ profiles: [p] });
+            source = 'device';
+            await persist();   // carry the old rotation forward so the widget finds it too
+          }
+        }
+      }
+    }catch(e){ /* nothing saved yet */ }
+    draft = clone(activeProfile());
+    return source;
+  }
+
+  /* ================= Light and dark ================= */
+  const darkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function resolvedTheme(){
+    if(data.theme === 'system') return darkQuery && darkQuery.matches ? 'dark' : 'light';
+    return data.theme;
+  }
+  function applyTheme(){
+    const t = resolvedTheme();
+    document.documentElement.setAttribute('data-theme', t);
+    $('themeColor').setAttribute('content', t === 'dark' ? '#0F1114' : '#FFFFFF');
+    $('themeIconMoon').toggleAttribute('hidden', t === 'dark');
+    $('themeIconSun').toggleAttribute('hidden', t !== 'dark');
+    $('themeQuick').setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    document.querySelectorAll('.theme-btn').forEach(b=>{
+      const on = b.dataset.themeChoice === data.theme;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  async function setTheme(choice){
+    data.theme = THEMES.indexOf(choice) >= 0 ? choice : 'light';
+    applyTheme();
+    await persist();
+  }
+  document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', ()=> setTheme(b.dataset.themeChoice)));
+  $('themeQuick').addEventListener('click', ()=> setTheme(resolvedTheme() === 'dark' ? 'light' : 'dark'));
+  if(darkQuery){
+    const onSystemChange = ()=>{ if(data.theme === 'system') applyTheme(); };
+    if(darkQuery.addEventListener) darkQuery.addEventListener('change', onSystemChange);
+    else if(darkQuery.addListener) darkQuery.addListener(onSystemChange);
+  }
+
+  /* ================= Screens ================= */
+  let currentTab = 'home';
+  function showTab(name){
+    currentTab = name;
+    document.querySelectorAll('.view').forEach(v => { v.hidden = v.id !== 'view-'+name; });
+    document.querySelectorAll('.tab-btn').forEach(b=>{
+      const on = b.dataset.tab === name;
+      b.classList.toggle('active', on);
+      if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', ()=> showTab(b.dataset.tab)));
+  $('editBtn').addEventListener('click', ()=> showTab('settings'));
+
+  /* ================= Schedule =================
+     One cycle = days on, then days off. Travel days are taken from the days off:
+     travel home sits at the start of the off block, travel out at the end. */
+  function phaseAt(s, dateObj){
+    const cycleLen = s.onDays + s.offDays;
+    let pos = daysBetween(parseDate(s.startDate), dateObj) % cycleLen;
+    if(pos < 0) pos += cycleLen;
+    const homeEnd = s.onDays + s.travelHome;      // first day at home
+    const outStart = cycleLen - s.travelOut;      // first travel-out day
+    const toHitch = cycleLen - pos;               // days until the next hitch starts
+    if(pos < s.onDays) return { kind:'on', day: pos+1, total: s.onDays, left: s.onDays - pos, toHitch };
+    if(pos < homeEnd) return { kind:'travelHome', day: pos - s.onDays + 1, total: s.travelHome, left: homeEnd - pos, toHitch };
+    if(pos < outStart) return { kind:'off', day: pos - homeEnd + 1, total: outStart - homeEnd, left: outStart - pos, toHitch };
+    return { kind:'travelOut', day: pos - outStart + 1, total: s.travelOut, left: toHitch, toHitch };
+  }
+  function shiftText(s){ return s.shift === 'day' ? 'Day shift' : s.shift === 'night' ? 'Night shift' : ''; }
+
+  // Every change of phase after today, within a year.
+  function upcomingChanges(s, limit){
+    const today = new Date();
+    const out = [];
+    let prev = phaseAt(s, today).kind;
+    for(let i=1; i<=365 && out.length < limit; i++){
+      const d = addDays(today, i);
+      const kind = phaseAt(s, d).kind;
+      if(kind !== prev){ out.push({ date: d, kind, from: prev, daysOut: i }); prev = kind; }
+    }
+    return out;
+  }
+  function changeLabel(ch){
+    if(ch.kind === 'on') return 'Back to the field';
+    if(ch.kind === 'travelHome') return 'Heading home — travel';
+    if(ch.kind === 'travelOut') return 'Travel to the rig';
+    return ch.from === 'travelHome' ? 'Home — days off begin' : 'Heading home';
+  }
+  // The two moments worth a reminder: leaving home and leaving the rig.
+  function isKeyChange(ch){
+    return ch.kind === 'travelOut' || (ch.kind === 'on' && ch.from !== 'travelOut') || ch.from === 'on';
+  }
+  // Whole blocks (hitch, travel, home) from the one containing today to a year out.
+  function blocks(s){
+    const today = new Date();
+    const end = addDays(today, 365);
+    let d = addDays(today, -(phaseAt(s, today).day - 1));
+    const out = [];
+    for(let guard=0; d <= end && guard < 800; guard++){
+      const p = phaseAt(s, d);
+      out.push({ kind: p.kind, start: d, len: p.total });
+      d = addDays(d, p.total);
+    }
+    return out;
+  }
+  function tally(s, from, days){
+    const c = { on: 0, travel: 0, off: 0 };
+    for(let i=0; i<days; i++){
+      const k = phaseAt(s, addDays(from, i)).kind;
+      c[k === 'on' ? 'on' : k === 'off' ? 'off' : 'travel']++;
+    }
+    return c;
+  }
+  function money(s, n){
+    return (s.currency ? s.currency + ' ' : '') + Math.round(n).toLocaleString('en-US');
+  }
+  function rotationSummary(s){
+    let t = s.onDays+' on / '+s.offDays+' off';
+    if(s.travelOut || s.travelHome) t += ' · travel '+s.travelOut+' out, '+s.travelHome+' home';
+    if(shiftText(s)) t += ' · '+shiftText(s).toLowerCase();
+    return t;
+  }
+
+  /* ================= Rendering ================= */
+  const ICONS = {
+    on: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 7 21M12 3l5 18M5 21h14M9.6 12h4.8M8.5 16h7"/></svg>',
+    off: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+    travel: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-7-7 18-3-8z"/></svg>'
+  };
+  function tone(kind){ return kind === 'on' ? 'on' : kind === 'off' ? 'off' : 'travel'; }
+
+  function renderHero(){
+    const s = draft;
+    const today = new Date();
+    const p = phaseAt(s, today);
+    let count, sub, label, cap;
+    if(p.kind === 'on'){
+      count = p.left;
+      label = 'On hitch';
+      cap = 'day'+plural(count)+' to crew change';
+      sub = 'Crew change: <strong>'+fmtDate(addDays(today, p.left))+'</strong>';
+      if(s.travelHome > 0) sub += ' &nbsp;·&nbsp; Home: <strong>'+fmtDate(addDays(today, p.left + s.travelHome))+'</strong>';
+      if(shiftText(s)) sub += ' &nbsp;·&nbsp; '+shiftText(s);
+    } else if(p.kind === 'travelHome'){
+      count = p.left;
+      label = 'Travelling home';
+      cap = 'day'+plural(count)+' until you are home';
+      sub = 'Home: <strong>'+fmtDate(addDays(today, p.left))+'</strong>';
+    } else if(p.kind === 'off'){
+      count = p.toHitch;
+      label = 'Off hitch';
+      cap = 'day'+plural(count)+' until back to the field';
+      sub = s.travelOut > 0
+        ? 'Leave home: <strong>'+fmtDate(addDays(today, p.left))+'</strong> &nbsp;·&nbsp; Hitch starts: <strong>'+fmtDate(addDays(today, p.toHitch))+'</strong>'
+        : 'Crew change: <strong>'+fmtDate(addDays(today, p.toHitch))+'</strong>';
+    } else {
+      count = p.left;
+      label = 'Travelling out';
+      cap = 'day'+plural(count)+' until the hitch starts';
+      sub = 'Hitch starts: <strong>'+fmtDate(addDays(today, p.left))+'</strong>';
+    }
+    const num = $('bigNumber');
+    num.textContent = count;
+    num.classList.toggle('long', count >= 100);
+    $('heroCap').textContent = cap;
+    $('heroSub').innerHTML = sub;
+    $('phaseLabel').textContent = label;
+    $('progLeft').textContent = 'Day '+p.day+' of '+p.total;
+    $('pill').className = 'pill ' + tone(p.kind);
+    const pct = p.day / p.total;
+    $('ringArc').setAttribute('stroke-dasharray', (pct * RING).toFixed(1)+' '+RING.toFixed(1));
+    $('ring').setAttribute('aria-label', label+', day '+p.day+' of '+p.total);
+    $('todayLine').textContent = today.toLocaleDateString('en-US', { weekday:'long', day:'numeric', month:'long' });
+  }
+
+  function renderBanner(){
+    const banner = $('banner');
+    banner.hidden = true;
+    if(!data.remindDays) return;
+    const next = upcomingChanges(draft, 6).find(isKeyChange);
+    if(!next || next.daysOut > data.remindDays) return;
+    const stamp = todayStr()+'|'+draft.id+'|'+dateStr(next.date);
+    let dismissed = null;
+    try{ dismissed = window.localStorage.getItem(DISMISS_KEY); }catch(e){}
+    if(dismissed === stamp) return;
+    const when = next.daysOut === 1 ? 'tomorrow' : 'in '+next.daysOut+' days';
+    $('bannerText').innerHTML = '<strong>'+changeLabel(next)+' '+when+'</strong> — '+fmtDate(next.date);
+    banner.dataset.stamp = stamp;
+    banner.hidden = false;
+  }
+
+  function renderProfiles(){
+    const wrap = $('profileChips');
+    // Reuse the existing buttons when the list has not changed, so a tap that
+    // lands while a field is still being committed is not lost to a redraw.
+    const have = [...wrap.children].map(b => b.dataset.id).join('|');
+    if(have !== data.profiles.map(p => p.id).join('|')){
+      wrap.innerHTML = '';
+      data.profiles.forEach(p=>{
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.id = p.id;
+        b.addEventListener('click', ()=> switchProfile(p.id));
+        wrap.appendChild(b);
+      });
+    }
+    data.profiles.forEach((p, i)=>{
+      const b = wrap.children[i];
+      const on = p.id === data.activeId;
+      b.className = 'chip profile-chip' + (on ? ' active' : '');
+      b.textContent = on ? draft.name : p.name;
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    $('profiles').hidden = data.profiles.length < 2;
+    $('newProfileBtn').disabled = data.profiles.length >= MAX_PROFILES;
+    $('deleteBtn').hidden = data.profiles.length < 2;
+
+    const sel = $('widgetSelect');
+    sel.innerHTML = '';
+    const add = (value, text) => { const o = document.createElement('option'); o.value = value; o.textContent = text; sel.appendChild(o); };
+    add('active', 'Whichever rotation is open');
+    data.profiles.forEach(p => add(p.id, p.name));
+    sel.value = data.widgetId;
+    $('widgetTool').hidden = data.profiles.length < 2;
+  }
+
+  function renderCalendar(){
+    const s = draft;
+    const grid = $('monthsGrid');
+    grid.innerHTML = '';
+    const today = new Date();
+    $('calSub').textContent = rotationSummary(s)+' — from '+fmtDate(parseDate(s.startDate));
+    $('legendTravel').style.display = (s.travelOut || s.travelHome) ? '' : 'none';
+    $('setupHint').textContent = rotationSummary(s);
+
+    for(let m=0; m<12; m++){
+      const monthDate = new Date(today.getFullYear(), today.getMonth()+m, 1);
+      const card = document.createElement('div');
+      card.className = 'month-card';
+      const h3 = document.createElement('h3');
+      h3.textContent = MONTHS[monthDate.getMonth()]+' '+monthDate.getFullYear();
+      card.appendChild(h3);
+
+      const dowRow = document.createElement('div');
+      dowRow.className = 'dow-row';
+      dowRow.setAttribute('aria-hidden', 'true');
+      DOW.forEach(d=>{ const sp = document.createElement('span'); sp.textContent = d; dowRow.appendChild(sp); });
+      card.appendChild(dowRow);
+
+      const dayGrid = document.createElement('div');
+      dayGrid.className = 'day-grid';
+      const firstDow = monthDate.getDay();
+      const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth()+1, 0).getDate();
+      for(let i=0;i<firstDow;i++){
+        const c = document.createElement('div');
+        c.className = 'day-cell empty';
+        dayGrid.appendChild(c);
+      }
+      for(let day=1; day<=daysInMonth; day++){
+        const d = new Date(monthDate.getFullYear(), monthDate.getMonth(), day);
+        const c = document.createElement('div');
+        c.className = 'day-cell '+tone(phaseAt(s, d).kind);
+        if(daysBetween(today,d)===0) c.className += ' today';
+        c.textContent = day;
+        dayGrid.appendChild(c);
+      }
+      card.appendChild(dayGrid);
+      grid.appendChild(card);
+    }
+  }
+
+  function googleCalLink(title, date){
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(title)+
+           '&dates='+compact(date)+'/'+compact(addDays(date, 1));
+  }
+
+  function renderUpcoming(){
+    const list = $('upcomingList');
+    const pair = $('nextPair');
+    list.innerHTML = '';
+    pair.innerHTML = '';
+    const changes = upcomingChanges(draft, 10);
+    if(changes.length === 0){
+      const div = document.createElement('div');
+      div.className = 'upcoming-item';
+      div.innerHTML = '<span class="label">No crew changes in the next year</span>';
+      list.appendChild(div);
+      return;
+    }
+    // The next two changes as cards under the countdown
+    changes.slice(0, 2).forEach(ch=>{
+      const card = document.createElement('div');
+      card.className = 'card mini';
+      card.innerHTML =
+        '<div class="icon '+tone(ch.kind)+'">'+ICONS[tone(ch.kind)]+'</div>'+
+        '<div><div class="label">'+changeLabel(ch)+'</div>'+
+        '<div class="when">'+fmtDate(ch.date)+'</div>'+
+        '<div class="away">in '+ch.daysOut+' day'+plural(ch.daysOut)+'</div></div>';
+      pair.appendChild(card);
+    });
+    changes.forEach(ch=>{
+      const label = changeLabel(ch);
+      const item = document.createElement('div');
+      item.className = 'upcoming-item';
+      item.innerHTML =
+        '<div class="icon '+tone(ch.kind)+'">'+ICONS[tone(ch.kind)]+'</div>'+
+        '<div class="mid"><div class="label">'+label+'</div>'+
+        '<div class="dates">'+fmtDate(ch.date)+
+        ' <a target="_blank" rel="noopener" href="'+googleCalLink(label, ch.date)+'">Google Calendar</a></div></div>'+
+        '<div class="days-out">in '+ch.daysOut+' day'+plural(ch.daysOut)+'</div>';
+      list.appendChild(item);
+    });
+  }
+
+  function renderTally(){
+    const s = draft;
+    const today = new Date();
+    const year = today.getFullYear();
+    const jan1 = new Date(year, 0, 1);
+    const cols = [
+      tally(s, jan1, daysBetween(jan1, today) + 1),
+      tally(s, jan1, daysBetween(jan1, new Date(year+1, 0, 1))),
+      tally(s, today, 365)
+    ];
+    $('tallyH2').textContent = 'Full year '+year;
+    $('tallySub').textContent = rotationSummary(s);
+    const rows = [
+      ['<span class="dot" style="background:var(--accent)"></span>On hitch', c => c.on, ''],
+      ['<span class="dot" style="background:var(--travel-bg)"></span>Travel', c => c.travel, ''],
+      ['<span class="dot" style="background:var(--off-bg);outline:1px solid var(--line-strong)"></span>At home', c => c.off, '']
+    ];
+    if(!(s.travelOut || s.travelHome)) rows.splice(1, 1);
+    if(s.dayRate > 0){
+      rows.push(['Est. earnings', c => money(s, (c.on + (s.payTravel ? c.travel : 0)) * s.dayRate), 'money']);
+    }
+    $('tallyBody').innerHTML = rows.map(r =>
+      '<tr class="'+r[2]+'"><td>'+r[0]+'</td>'+cols.map(c => '<td>'+r[1](c)+'</td>').join('')+'</tr>').join('');
+    let note = 'Assumes this rotation holds for the whole period, including the months before your current hitch.';
+    if(s.dayRate > 0){
+      const paid = s.onDays + (s.payTravel ? s.travelOut + s.travelHome : 0);
+      note = 'One full hitch is '+paid+' paid day'+plural(paid)+', about '+money(s, paid * s.dayRate)+'. Estimate only, before tax and deductions. ' + note;
+    }
+    $('tallyNote').textContent = note;
+  }
+
+  function updateControls(){
+    const s = draft;
+    $('profileName').value = s.name;
+    $('onDays').value = s.onDays;
+    $('offDays').value = s.offDays;
+    $('startDate').value = s.startDate;
+    $('travelOut').value = s.travelOut;
+    $('travelHome').value = s.travelHome;
+    $('travelOut').max = s.offDays;
+    $('travelHome').max = s.offDays;
+    $('dayRate').value = s.dayRate > 0 ? s.dayRate : '';
+    $('currency').value = s.currency;
+    const press = (sel, test) => document.querySelectorAll(sel).forEach(b=>{
+      const on = test(b);
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    press('.preset-btn', b => Number(b.dataset.on) === s.onDays && Number(b.dataset.off) === s.offDays);
+    press('.shift-btn', b => b.dataset.shift === s.shift);
+    press('.pay-btn', b => (b.dataset.pay === '1') === s.payTravel);
+    press('.remind-btn', b => Number(b.dataset.days) === data.remindDays);
+  }
+
+  function render(){
+    updateControls();
+    renderProfiles();
+    renderHero();
+    renderBanner();
+    renderCalendar();
+    renderUpcoming();
+    renderTally();
+    applyTheme();
+  }
+
+  /* ================= Editing and saving ================= */
+  const saveBtn = $('saveBtn');
+  const saveNote = $('saveNote');
+
+  function setNote(el, text, warn){
+    el.textContent = text;
+    el.classList.toggle('warn', !!warn);
+  }
+  function markUnsaved(){
+    dirty = true;
+    saveBtn.classList.remove('saved');
+    saveBtn.textContent = 'Save rotation to this device';
+    $('discardBtn').hidden = false;
+    $('unsavedFlag').hidden = false;
+    setNote(saveNote, 'Not yet saved — tap Save to keep this rotation on this device.');
+  }
+  function markSaved(ok, okText){
+    if(ok){
+      dirty = false;
+      saveBtn.classList.add('saved');
+      saveBtn.textContent = 'Saved to this device ✓';
+      $('discardBtn').hidden = true;
+      $('unsavedFlag').hidden = true;
+      setNote(saveNote, okText);
+    } else {
+      saveBtn.classList.remove('saved');
+      saveBtn.textContent = 'Save rotation to this device';
+      setNote(saveNote, 'Could not save — this device is blocking storage. Your rotation will be lost when the app closes.', true);
+    }
+  }
+  // Apply a change to the working copy, re-validate, redraw. Nothing is stored until Save.
+  function change(patch){
+    draft = normalizeProfile(Object.assign({}, draft, patch));
+    render();
+    markUnsaved();
+  }
+  async function saveDraft(okText){
+    const i = data.profiles.findIndex(p => p.id === data.activeId);
+    data.profiles[i] = clone(draft);
+    const ok = await persist();
+    markSaved(ok, okText || 'Your rotation is stored on this device and will load automatically next time.');
+    renderProfiles();
+    return ok;
+  }
+  function blockedByUnsaved(){
+    if(!dirty) return false;
+    showTab('settings');
+    setNote(saveNote, 'Save or discard your changes to "'+draft.name+'" first.', true);
+    $('saveBtn').scrollIntoView({ block: 'center' });
+    return true;
+  }
+
+  document.querySelectorAll('.preset-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> change({ onDays: Number(btn.dataset.on), offDays: Number(btn.dataset.off) }));
+  });
+  document.querySelectorAll('.shift-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> change({ shift: btn.dataset.shift }));
+  });
+  document.querySelectorAll('.pay-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> change({ payTravel: btn.dataset.pay === '1' }));
+  });
+  // The − and + buttons nudge the number box beside them, then commit it like typing would.
+  document.querySelectorAll('.step').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const input = $(btn.dataset.for);
+      input.value = whole(input.value) + Number(btn.dataset.d);
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+  $('profileName').addEventListener('change', ()=> change({ name: $('profileName').value }));
+  $('onDays').addEventListener('change', ()=> change({ onDays: clamp(whole($('onDays').value), 1, 365) }));
+  $('offDays').addEventListener('change', ()=> change({ offDays: clamp(whole($('offDays').value), 1, 365) }));
+  $('travelOut').addEventListener('change', ()=> change({ travelOut: $('travelOut').value }));
+  $('travelHome').addEventListener('change', ()=>{
+    const home = clamp(whole($('travelHome').value), 0, draft.offDays);
+    change({ travelOut: Math.min(draft.travelOut, draft.offDays - home), travelHome: home });
+  });
+  $('startDate').addEventListener('change', ()=>{ if($('startDate').value) change({ startDate: $('startDate').value }); });
+  $('dayRate').addEventListener('change', ()=> change({ dayRate: $('dayRate').value }));
+  $('currency').addEventListener('change', ()=> change({ currency: $('currency').value }));
+
+  saveBtn.addEventListener('click', ()=> saveDraft());
+  $('discardBtn').addEventListener('click', ()=>{
+    draft = clone(activeProfile());
+    render();
+    markSaved(true, 'Changes discarded. Showing your saved rotation.');
+  });
+
+  /* ---- Rotations (profiles): these are explicit actions, so they save straight away ---- */
+  async function switchProfile(id){
+    if(id === data.activeId || blockedByUnsaved()) return;
+    data.activeId = id;
+    draft = clone(activeProfile());
+    const ok = await persist();
+    render();
+    markSaved(ok, 'Switched to "'+draft.name+'".');
+  }
+  $('newProfileBtn').addEventListener('click', async ()=>{
+    if(data.profiles.length >= MAX_PROFILES || blockedByUnsaved()) return;
+    let n = data.profiles.length + 1;
+    while(data.profiles.some(p => p.name === 'Rotation '+n)) n++;
+    const p = defaultProfile('Rotation '+n);
+    data.profiles.push(p);
+    data.activeId = p.id;
+    draft = clone(p);
+    const ok = await persist();
+    render();
+    markSaved(ok, 'New rotation added. Set it up above and tap Save.');
+    showTab('settings');
+    $('profileName').focus();
+    $('profileName').select();
+  });
+
+  // Destructive buttons ask for a second tap instead of a pop-up dialog.
+  function twoTap(btn, label, action){
+    let armed = false, timer = null;
+    btn.addEventListener('click', ()=>{
+      if(!armed){
+        armed = true;
+        btn.textContent = 'Tap again to confirm';
+        timer = setTimeout(()=>{ armed = false; btn.textContent = label; }, 4000);
+        return;
+      }
+      clearTimeout(timer);
+      armed = false;
+      btn.textContent = label;
+      action();
+    });
+  }
+  twoTap($('deleteBtn'), 'Delete rotation', async ()=>{
+    if(data.profiles.length < 2) return;
+    const gone = draft.name;
+    data.profiles = data.profiles.filter(p => p.id !== data.activeId);
+    if(data.widgetId === data.activeId) data.widgetId = 'active';
+    data.activeId = data.profiles[0].id;
+    draft = clone(activeProfile());
+    const ok = await persist();
+    render();
+    markSaved(ok, 'Deleted "'+gone+'". Showing "'+draft.name+'".');
+  });
+
+  /* ---- Tools ---- */
+  document.querySelectorAll('.remind-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      data.remindDays = Number(btn.dataset.days);
+      await persist();
+      updateControls();
+      renderBanner();
+    });
+  });
+  $('widgetSelect').addEventListener('change', async ()=>{
+    data.widgetId = $('widgetSelect').value;
+    data = normalizeData(data);
+    await persist();
+  });
+  $('bannerClose').addEventListener('click', ()=>{
+    try{ window.localStorage.setItem(DISMISS_KEY, $('banner').dataset.stamp || ''); }catch(e){}
+    $('banner').hidden = true;
+  });
+
+  twoTap($('resetBtn'), 'Reset this rotation', async ()=>{
+    const fresh = defaultProfile(draft.name);
+    fresh.id = draft.id;
+    draft = fresh;
+    render();
+    const ok = await saveDraft('Reset and saved to this device.');
+    setNote($('resetNote'), ok ? '"'+draft.name+'" is back to 14 on / 14 off, starting today.' : 'Could not save the reset.', !ok);
+  });
+  twoTap($('eraseBtn'), 'Erase everything', async ()=>{
+    await store.remove(DATA_KEY);
+    await store.remove(OLD_KEY);
+    try{ window.localStorage.removeItem(DISMISS_KEY); }catch(e){}
+    window.location.reload();
+  });
+
+  /* ================= Saving files to the phone ================= */
+  // Phones: use the share sheet when the browser offers it. Otherwise a normal download.
+  async function saveFile(blob, filename){
+    const touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    if(touch && navigator.canShare){
+      try{
+        const file = new File([blob], filename, { type: blob.type });
+        if(navigator.canShare({ files: [file] })){
+          await navigator.share({ files: [file], title: filename });
+          return 'shared';
+        }
+      }catch(e){
+        if(e && e.name === 'AbortError') return 'cancelled';
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 60000);
+    return 'downloaded';
+  }
+
+  /* ---- Calendar file (.ics) ---- */
+  function icsEscape(t){ return String(t).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n'); }
+  function buildIcs(s){
+    const tag = data.profiles.length > 1 ? ' ('+s.name+')' : '';
+    const now = new Date();
+    const stamp = now.getUTCFullYear()+String(now.getUTCMonth()+1).padStart(2,'0')+String(now.getUTCDate()).padStart(2,'0')+'T'+
+                  String(now.getUTCHours()).padStart(2,'0')+String(now.getUTCMinutes()).padStart(2,'0')+String(now.getUTCSeconds()).padStart(2,'0')+'Z';
+    const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Hitch Countdown//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+                   'X-WR-CALNAME:'+icsEscape('Hitch rotation'+tag)];
+    const alarmHours = data.remindDays ? data.remindDays * 24 - 9 : 0;   // 9:00 in the morning, N days before
+    function event(kind, start, len, title, alarm){
+      lines.push('BEGIN:VEVENT',
+        'UID:'+s.id+'-'+kind+'-'+compact(start)+'@hitch-countdown',
+        'DTSTAMP:'+stamp,
+        'DTSTART;VALUE=DATE:'+compact(start),
+        'DTEND;VALUE=DATE:'+compact(addDays(start, len)),
+        'SUMMARY:'+icsEscape(title+tag),
+        'TRANSP:TRANSPARENT');
+      if(alarm && alarmHours > 0){
+        lines.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEscape(title+tag),'TRIGGER:-PT'+alarmHours+'H','END:VALARM');
+      }
+      lines.push('END:VEVENT');
+    }
+    let count = 0;
+    blocks(s).forEach(b=>{
+      if(b.kind === 'on'){
+        const shift = shiftText(s) ? ' · '+shiftText(s).toLowerCase() : '';
+        event('on', b.start, b.len, 'On hitch'+shift, s.travelOut === 0);
+        // with no travel-home day there is no event to hang the "heading home" reminder on
+        if(s.travelHome === 0) event('home', addDays(b.start, b.len), 1, 'Crew change — heading home', true);
+        count++;
+      } else if(b.kind === 'travelOut'){
+        event('out', b.start, b.len, 'Travel to the rig', true);
+      } else if(b.kind === 'travelHome'){
+        event('back', b.start, b.len, 'Travel home', true);
+      }
+    });
+    lines.push('END:VCALENDAR');
+    return { text: lines.join('\r\n') + '\r\n', hitches: count };
+  }
+  $('icsBtn').addEventListener('click', async ()=>{
+    const ics = buildIcs(draft);
+    const how = await saveFile(new Blob([ics.text], { type: 'text/calendar' }), 'hitch-rotation.ics');
+    setNote($('calNote'), how === 'cancelled' ? '' :
+      'Calendar file with '+ics.hitches+' hitches made. Open it and choose your calendar app to add them. If nothing happened, use the "Google Calendar" links on the Home screen.');
+  });
+
+  /* ---- Picture of the 12-month schedule, drawn in the current theme ---- */
+  let shareBlob = null, shareUrl = null;
+  async function buildShareImage(s){
+    if(document.fonts && document.fonts.load){
+      try{ await Promise.all([document.fonts.load('600 64px Outfit'), document.fonts.load('600 20px Manrope')]); }catch(e){}
+    }
+    const css = getComputedStyle(document.documentElement);
+    const v = n => css.getPropertyValue(n).trim();
+    const C = { bg: v('--bg'), ink: v('--ink'), dim: v('--dim'), on: v('--accent'), onInk: v('--accent-ink'),
+                off: v('--off-bg'), offInk: v('--off-ink'), travel: v('--travel-bg'), travelInk: v('--travel-ink'),
+                accentText: v('--accent-text'), line: v('--line-strong') };
+    const W = 1080, PAD = 56, COLS = 3, GAP = 28;
+    const colW = (W - 2*PAD - (COLS-1)*GAP) / COLS;
+    const CG = 5, cell = Math.floor((colW - 6*CG) / 7);
+    const monthH = 50 + 26 + 6*(cell+CG) + 26;
+    const headH = 290;
+    const H = headH + 4*monthH + 70;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const g = cv.getContext('2d');
+    const body = 'Manrope, system-ui, sans-serif', disp = 'Outfit, system-ui, sans-serif';
+    g.fillStyle = C.bg; g.fillRect(0,0,W,H);
+    g.fillStyle = C.on; g.fillRect(PAD, 62, 64, 10);
+
+    g.textBaseline = 'alphabetic';
+    g.fillStyle = C.ink; g.font = '600 72px '+disp;
+    g.fillText('Hitch schedule', PAD, 158);
+    g.fillStyle = C.dim; g.font = '600 26px '+body;
+    g.fillText((data.profiles.length > 1 ? s.name+' · ' : '')+rotationSummary(s), PAD, 204);
+    // legend
+    let lx = PAD;
+    const legend = [['On hitch', C.on], ['Off hitch', C.off]];
+    if(s.travelOut || s.travelHome) legend.push(['Travel day', C.travel]);
+    g.font = '700 21px '+body;
+    legend.forEach(l=>{
+      g.fillStyle = l[1]; g.beginPath(); g.arc(lx+11, 243, 11, 0, Math.PI*2); g.fill();
+      if(l[1] === C.off){ g.strokeStyle = C.line; g.lineWidth = 1.5; g.stroke(); }
+      g.fillStyle = C.dim; g.fillText(l[0], lx+32, 251);
+      lx += 32 + g.measureText(l[0]).width + 36;
+    });
+
+    const today = new Date();
+    for(let m=0; m<12; m++){
+      const md = new Date(today.getFullYear(), today.getMonth()+m, 1);
+      const x0 = PAD + (m % COLS) * (colW + GAP);
+      const y0 = headH + Math.floor(m / COLS) * monthH;
+      g.fillStyle = C.ink; g.font = '500 28px '+disp;
+      g.textAlign = 'left';
+      g.fillText(MONTHS[md.getMonth()]+' '+md.getFullYear(), x0, y0 + 30);
+      g.font = '700 14px '+body; g.fillStyle = C.dim; g.textAlign = 'center';
+      DOW.forEach((d,i)=> g.fillText(d, x0 + i*(cell+CG) + cell/2, y0 + 62));
+      const first = md.getDay();
+      const dim = new Date(md.getFullYear(), md.getMonth()+1, 0).getDate();
+      for(let day=1; day<=dim; day++){
+        const idx = first + day - 1;
+        const cx = x0 + (idx % 7) * (cell+CG) + cell/2;
+        const cy = y0 + 76 + Math.floor(idx / 7) * (cell+CG) + cell/2;
+        const d = new Date(md.getFullYear(), md.getMonth(), day);
+        const kind = tone(phaseAt(s, d).kind);
+        g.fillStyle = kind === 'on' ? C.on : kind === 'off' ? C.off : C.travel;
+        g.beginPath(); g.arc(cx, cy, cell/2, 0, Math.PI*2); g.fill();
+        if(daysBetween(today, d) === 0){ g.strokeStyle = C.ink; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, cell/2 + 3.5, 0, Math.PI*2); g.stroke(); }
+        g.fillStyle = kind === 'on' ? C.onInk : kind === 'off' ? C.offInk : C.travelInk;
+        g.font = '500 17px '+disp;
+        g.fillText(String(day), cx, cy + 6);
+      }
+    }
+    g.textAlign = 'left';
+    g.fillStyle = C.dim; g.font = '500 19px '+body;
+    g.fillText('Made with Hitch Countdown · '+fmtDate(today)+', '+today.getFullYear(), PAD, H - 30);
+    return new Promise(resolve => cv.toBlob(resolve, 'image/png'));
+  }
+  $('imgBtn').addEventListener('click', async ()=>{
+    setNote($('calNote'), 'Drawing your schedule…');
+    try{
+      shareBlob = await buildShareImage(draft);
+      if(!shareBlob) throw new Error('no image');
+      if(shareUrl) URL.revokeObjectURL(shareUrl);
+      shareUrl = URL.createObjectURL(shareBlob);
+      $('shareImg').src = shareUrl;
+      $('imgOverlay').hidden = false;
+      setNote($('calNote'), '');
+    }catch(e){
+      setNote($('calNote'), 'Could not draw the picture on this device. A screenshot of the calendar works as well.', true);
+    }
+  });
+  $('imgClose').addEventListener('click', ()=>{ $('imgOverlay').hidden = true; });
+  $('imgSave').addEventListener('click', ()=>{ if(shareBlob) saveFile(shareBlob, 'hitch-schedule.png'); });
+
+  /* ---- Backup ---- */
+  function backupText(){
+    return JSON.stringify({ app: 'hitch-countdown', version: 2, exported: new Date().toISOString(), data });
+  }
+  async function restoreFrom(text){
+    let parsed;
+    try{ parsed = JSON.parse(text); }catch(e){ parsed = null; }
+    const inner = parsed && parsed.data ? parsed.data : parsed;
+    let next = null;
+    if(inner && Array.isArray(inner.profiles) && inner.profiles.length) next = normalizeData(inner);
+    else if(inner && inner.onDays && inner.offDays && inner.startDate) next = normalizeData({ profiles: [inner], theme: data.theme });   // v1.x format
+    if(!next){
+      setNote($('backupNote'), 'That is not a Hitch Countdown backup. Nothing was changed.', true);
+      return false;
+    }
+    data = next;
+    draft = clone(activeProfile());
+    const ok = await persist();
+    render();
+    markSaved(ok, 'Restored from backup.');
+    setNote($('backupNote'), ok ? 'Restored '+data.profiles.length+' rotation'+plural(data.profiles.length)+' from backup.' : 'Backup read, but this device is blocking storage.', !ok);
+    return ok;
+  }
+  $('exportBtn').addEventListener('click', async ()=>{
+    if(blockedByUnsaved()) return;
+    const how = await saveFile(new Blob([backupText()], { type: 'application/json' }), 'hitch-countdown-backup.json');
+    setNote($('backupNote'), how === 'cancelled' ? '' : 'Backup file made. If nothing was saved, use "Copy backup as text" and paste it into a note or message to yourself.');
+  });
+  $('importBtn').addEventListener('click', ()=> $('importFile').click());
+  $('importFile').addEventListener('change', ()=>{
+    const f = $('importFile').files && $('importFile').files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=> restoreFrom(String(r.result));
+    r.onerror = ()=> setNote($('backupNote'), 'Could not read that file.', true);
+    r.readAsText(f);
+    $('importFile').value = '';
+  });
+  $('copyBackupBtn').addEventListener('click', async ()=>{
+    if(blockedByUnsaved()) return;
+    const text = backupText();
+    let copied = false;
+    try{ await navigator.clipboard.writeText(text); copied = true; }catch(e){}
+    if(!copied){
+      // clipboard blocked: show the text so it can be copied by hand
+      $('pasteBox').hidden = false;
+      $('pasteArea').value = text;
+      $('pasteArea').focus();
+      $('pasteArea').select();
+      try{ copied = document.execCommand('copy'); }catch(e){}
+    }
+    setNote($('backupNote'), copied ? 'Backup copied. Paste it somewhere safe, such as a note or a message to yourself.'
+                                    : 'Select all the text in the box and copy it somewhere safe.');
+  });
+  $('pasteToggleBtn').addEventListener('click', ()=>{
+    $('pasteBox').hidden = !$('pasteBox').hidden;
+    if(!$('pasteBox').hidden){ $('pasteArea').value = ''; $('pasteArea').focus(); }
+  });
+  $('pasteApplyBtn').addEventListener('click', async ()=>{
+    if(await restoreFrom($('pasteArea').value.trim())){ $('pasteBox').hidden = true; $('pasteArea').value = ''; }
+  });
+
+  /* ================= First-run setup ================= */
+  const ob = { step: 1, s: null };
+  const OB_TITLES = ['Your rotation', 'When does it start?', 'Travel and shift'];
+  function obRender(){
+    const s = ob.s;
+    document.querySelectorAll('.ob-step').forEach(el => { el.hidden = Number(el.dataset.step) !== ob.step; });
+    $('obSteps').textContent = 'Step '+ob.step+' of 3';
+    [1,2,3].forEach(n => $('obDot'+n).classList.toggle('on', n <= ob.step));
+    $('obTitle').textContent = OB_TITLES[ob.step-1];
+    $('obBack').hidden = ob.step === 1;
+    $('obNext').textContent = ob.step === 3 ? 'Save and start' : 'Next';
+    $('obOn').value = s.onDays; $('obOff').value = s.offDays; $('obStart').value = s.startDate;
+    $('obOut').value = s.travelOut; $('obHome').value = s.travelHome;
+    document.querySelectorAll('.ob-preset').forEach(b => b.classList.toggle('active', Number(b.dataset.on) === s.onDays && Number(b.dataset.off) === s.offDays));
+    document.querySelectorAll('.ob-shift').forEach(b => b.classList.toggle('active', b.dataset.shift === s.shift));
+  }
+  function obChange(patch){ ob.s = normalizeProfile(Object.assign({}, ob.s, patch)); obRender(); }
+  function obRead(){
+    obChange({ onDays: clamp(whole($('obOn').value), 1, 365), offDays: clamp(whole($('obOff').value), 1, 365),
+               startDate: $('obStart').value || ob.s.startDate, travelOut: $('obOut').value, travelHome: $('obHome').value });
+  }
+  function startOnboarding(){
+    ob.step = 1; ob.s = clone(draft);
+    obRender();
+    $('onboard').hidden = false;
+  }
+  document.querySelectorAll('.ob-preset').forEach(b => b.addEventListener('click', ()=> obChange({ onDays: Number(b.dataset.on), offDays: Number(b.dataset.off) })));
+  document.querySelectorAll('.ob-shift').forEach(b => b.addEventListener('click', ()=> { obRead(); obChange({ shift: b.dataset.shift }); }));
+  ['obOn','obOff','obStart','obOut','obHome'].forEach(id => $(id).addEventListener('change', obRead));
+  $('obBack').addEventListener('click', ()=>{ obRead(); ob.step = Math.max(1, ob.step-1); obRender(); });
+  $('obNext').addEventListener('click', async ()=>{
+    obRead();
+    if(ob.step < 3){ ob.step++; obRender(); return; }
+    draft = clone(ob.s);
+    render();
+    const ok = await saveDraft('Your rotation is saved on this device. Change it any time here in Settings.');
+    $('onboard').hidden = true;
+    showTab(ok ? 'home' : 'settings');   // keep the warning in view if the device refused to save
+  });
+  $('obSkip').addEventListener('click', ()=>{
+    $('onboard').hidden = true;
+    showTab('settings');
+  });
+
+  /* ================= Start ================= */
+  loadData().then(source=>{
+    render();
+    if(source === 'device'){
+      saveBtn.classList.add('saved');
+      saveBtn.textContent = 'Saved to this device ✓';
+      setNote(saveNote, 'Loaded your saved rotation from this device.');
+    } else {
+      setNote(saveNote, 'No saved rotation yet — set it up above and tap Save.');
+      startOnboarding();
+    }
+  });
+
+  // Roll the countdown over at midnight if the app is left open
+  let lastDay = todayStr();
+  setInterval(()=>{
+    if(todayStr() !== lastDay){ lastDay = todayStr(); renderHero(); renderBanner(); renderCalendar(); renderUpcoming(); renderTally(); }
+  }, 60 * 1000);
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden && todayStr() !== lastDay){ lastDay = todayStr(); render(); }
+  });
+})();
+</script>
+</body>
+</html>
