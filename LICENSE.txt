@@ -20,9 +20,9 @@ Copyright (c) 2026 Dixit Suthar. All rights reserved.
    to its users. That visibility does not grant any licence to reuse it.
 
 4. Third-party components
-   The App includes the Outfit and Manrope typefaces, which belong to their
-   respective authors and are licensed under the SIL Open Font License 1.1.
-   See fonts/Outfit-LICENSE.txt and fonts/Manrope-LICENSE.txt. Nothing in
+   The App includes the Barlow and Barlow Semi Condensed typefaces, which
+   belong to their authors and are licensed under the SIL Open Font License
+   1.1. See fonts/Barlow-LICENSE.txt. Nothing in
    this licence restricts your rights to those fonts under their own licence.
 
 5. No warranty

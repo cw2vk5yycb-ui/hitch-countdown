@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Hitch Countdown. Copyright (c) 2026 Dixit Suthar. All rights reserved. See LICENSE.txt. -->
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="orange">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,59 +8,65 @@
 <link rel="icon" type="image/png" href="icon.png">
 <script>
 (function(){
-  var t = 'light';
-  try{ var d = JSON.parse(window.localStorage.getItem('hitch-data') || 'null'); if(d && d.theme) t = d.theme; }catch(e){}
-  if(t === 'system') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+  var t = 'orange';
+  try{
+    var d = JSON.parse(window.localStorage.getItem('hitch-data') || 'null');
+    if(d && d.theme) t = (d.theme === 'light' && !(Number(d.v) >= 3)) ? 'orange' : d.theme;
+  }catch(e){}
+  if(t === 'system') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'orange';
+  document.documentElement.setAttribute('data-theme', (t === 'dark' || t === 'light') ? t : 'orange');
 })();
 </script>
 <style>
-  @font-face{ font-family:'Outfit'; font-weight:100 900; font-display:swap; src:url('fonts/outfit.woff2') format('woff2'); }
-  @font-face{ font-family:'Manrope'; font-weight:200 800; font-display:swap; src:url('fonts/manrope.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow'; font-weight:500; font-display:swap; src:url('fonts/barlow-500.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow'; font-weight:600; font-display:swap; src:url('fonts/barlow-600.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow'; font-weight:700; font-display:swap; src:url('fonts/barlow-700.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow Semi Condensed'; font-weight:700; font-display:swap; src:url('fonts/barlow-semi-condensed-700.woff2') format('woff2'); }
   :root{
     color-scheme: light;
-    --card:#FFFFFF; --line:#EEEEEC; --ink:#15171C; --dim:#5F6672;
-    --accent:#FF5A1F; --tint:#FFF1E9; --tint-ink:#9A3412;
-    --off-bg:#F1F1EF; --travel-bg:#15171C; --travel-ink:#FFFFFF; --track:#F1F1EF;
-    --shadow: 0 16px 36px rgba(21,23,28,0.10), 0 2px 6px rgba(21,23,28,0.05);
-    --warn:#8A5A00;
+    --card:#FFFFFF; --line:#E7E5E0; --line-strong:#DAD7D0; --ink:#14181F; --dim:#5A6270;
+    --accent:#FF5A00; --accent-ink:#1A0E05; --bg:#F7F6F3;
+    --travel-bg:#1D3557; --travel-ink:#FFFFFF; --track:#EFEDE8;
+    --shadow: 0 14px 30px rgba(20,24,31,0.10), 0 2px 4px rgba(20,24,31,0.05);
+    --warn:#8A2E00;
   }
+  :root[data-theme="light"]{ --track:#F1F1EF; --bg:#FFFFFF; }
   :root[data-theme="dark"]{
     color-scheme: dark;
-    --card:#181B20; --line:#272B33; --ink:#F3F3F1; --dim:#A1A7B1;
-    --accent:#FF6A33; --tint:#3A1E11; --tint-ink:#FFB899;
-    --off-bg:#262A31; --travel-bg:#F3F3F1; --travel-ink:#15171C; --track:#262A31;
-    --shadow: 0 16px 36px rgba(0,0,0,0.4);
-    --warn:#F6E3A6;
+    --card:#181B20; --line:#272B33; --line-strong:#383D47; --ink:#F3F3F1; --dim:#A1A7B1;
+    --accent:#FF6A1A; --accent-ink:#1A0E05; --bg:#0F1114;
+    --travel-bg:#9DBBEA; --travel-ink:#0E1B2E; --track:#262A31;
+    --shadow: 0 14px 30px rgba(0,0,0,0.4);
+    --warn:#FFB98F;
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
   body{
     background: transparent;
-    font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
     display:flex; align-items:center; justify-content:center;
     min-height: 100vh; padding: 12px;
   }
   .widget{
     width: 100%; max-width: 340px;
-    background: var(--card); border: 1px solid var(--line); border-radius: 28px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 24px;
     box-shadow: var(--shadow);
-    padding: 20px 22px 18px; color: var(--ink);
+    padding: 18px 20px 16px; color: var(--ink);
   }
-  .eyebrow{ font-size: 12px; font-weight: 700; color: var(--dim); overflow-wrap: anywhere; }
-  .count-row{ display:flex; align-items:baseline; gap: 10px; margin-top: 4px; }
-  .count{ font-family:'Outfit', system-ui, sans-serif; font-weight: 300; font-size: 76px; line-height: 1; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
-  .count-unit{ font-family:'Outfit', system-ui, sans-serif; font-size: 18px; font-weight: 400; color: var(--dim); }
-  .phase{ display:inline-flex; align-items:center; gap: 7px; margin-top: 8px; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--tint); color: var(--tint-ink); }
-  .phase::before{ content:''; width: 7px; height: 7px; border-radius: 4px; background: var(--accent); }
-  .phase.off{ background: var(--off-bg); color: var(--ink); }
-  .phase.off::before{ background: var(--dim); }
+  .eyebrow{ font-size: 12px; font-weight: 700; color: var(--dim); letter-spacing: .8px; text-transform: uppercase; overflow-wrap: anywhere; }
+  .count-row{ display:flex; align-items:baseline; gap: 10px; margin-top: 2px; }
+  .count{ font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 700; font-size: 76px; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .count-unit{ font-size: 16px; font-weight: 600; color: var(--dim); }
+  .phase{ display:inline-flex; align-items:center; gap: 8px; margin-top: 8px; min-height: 32px; padding: 0 12px; border-radius: 10px; font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; background: var(--accent); color: var(--accent-ink); }
+  .phase::before{ content:''; width: 8px; height: 8px; border-radius: 4px; background: currentColor; }
+  .phase.off{ background: var(--ink); color: var(--bg); }
   .phase.travel{ background: var(--travel-bg); color: var(--travel-ink); }
   .next-date{ font-size: 13px; font-weight: 500; color: var(--dim); margin-top: 10px; }
   .next-date strong{ color: var(--ink); font-weight: 700; }
-  .track{ margin-top: 12px; height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
-  .fill{ height: 100%; border-radius: 4px; background: var(--accent); transition: width .4s ease; }
+  .track{ margin-top: 12px; height: 10px; border-radius: 5px; background: var(--track); overflow: hidden; }
+  .fill{ height: 100%; background: var(--accent); transition: width .4s ease; }
   @media (prefers-reduced-motion: reduce){ .fill{ transition:none; } }
   .updated{ margin-top: 10px; font-size: 11px; font-weight: 500; color: var(--dim); }
   .fallback-note{ margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--warn); }
@@ -142,23 +148,24 @@
         if(d && Array.isArray(d.profiles) && d.profiles.length){
           const pick = d.profiles.find(p => p && p.id === d.widgetId) ||
                        d.profiles.find(p => p && p.id === d.activeId) || d.profiles[0];
-          return { settings: normalize(pick), usedFallback: false, many: d.profiles.length > 1, theme: d.theme };
+          const theme = (d.theme === 'light' && !(Number(d.v) >= 3)) ? 'orange' : d.theme;
+          return { settings: normalize(pick), usedFallback: false, many: d.profiles.length > 1, theme };
         }
       }
       const old = await readStore(OLD_KEY);
       if(old){
         const p = JSON.parse(old);
-        if(p && p.onDays && p.offDays && p.startDate) return { settings: normalize(p), usedFallback: false, many: false, theme: 'light' };
+        if(p && p.onDays && p.offDays && p.startDate) return { settings: normalize(p), usedFallback: false, many: false, theme: 'orange' };
       }
     }catch(e){
       // nothing saved yet in the main app
     }
-    return { settings: normalize({}), usedFallback: true, many: false, theme: 'light' };
+    return { settings: normalize({}), usedFallback: true, many: false, theme: 'orange' };
   }
 
   function applyTheme(choice){
-    let t = choice === 'dark' ? 'dark' : 'light';
-    if(choice === 'system') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    let t = (choice === 'dark' || choice === 'light') ? choice : 'orange';
+    if(choice === 'system') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'orange';
     document.documentElement.setAttribute('data-theme', t);
   }
 

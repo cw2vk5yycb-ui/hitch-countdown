@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <!-- Hitch Countdown. Copyright (c) 2026 Dixit Suthar. All rights reserved. See LICENSE.txt. -->
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="orange">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#FFFFFF" id="themeColor">
+<meta name="theme-color" content="#F7F6F3" id="themeColor">
 <title>Hitch Countdown</title>
 <meta name="author" content="Dixit Suthar">
 <meta name="copyright" content="© 2026 Dixit Suthar. All rights reserved.">
@@ -18,58 +18,83 @@
 <script>
 /* Pick the saved theme before the first paint so the screen never flashes the wrong one. */
 (function(){
-  var t = 'light';
-  try{ var d = JSON.parse(window.localStorage.getItem('hitch-data') || 'null'); if(d && d.theme) t = d.theme; }catch(e){}
-  if(t === 'system') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+  var t = 'orange';
+  try{
+    var d = JSON.parse(window.localStorage.getItem('hitch-data') || 'null');
+    if(d && d.theme) t = (d.theme === 'light' && !(Number(d.v) >= 3)) ? 'orange' : d.theme;
+  }catch(e){}
+  if(t === 'system') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'orange';
+  document.documentElement.setAttribute('data-theme', (t === 'dark' || t === 'light') ? t : 'orange');
 })();
 </script>
 <style>
   /* Fonts are bundled with the app so it looks the same with no signal. */
-  @font-face{ font-family:'Outfit'; font-weight:100 900; font-display:swap; src:url('fonts/outfit.woff2') format('woff2'); }
-  @font-face{ font-family:'Manrope'; font-weight:200 800; font-display:swap; src:url('fonts/manrope.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow'; font-weight:400; font-display:swap; src:url('fonts/barlow-400.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow'; font-weight:500; font-display:swap; src:url('fonts/barlow-500.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow'; font-weight:600; font-display:swap; src:url('fonts/barlow-600.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow'; font-weight:700; font-display:swap; src:url('fonts/barlow-700.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow Semi Condensed'; font-weight:600; font-display:swap; src:url('fonts/barlow-semi-condensed-600.woff2') format('woff2'); }
+  @font-face{ font-family:'Barlow Semi Condensed'; font-weight:700; font-display:swap; src:url('fonts/barlow-semi-condensed-700.woff2') format('woff2'); }
 
+  /* Orange-White: safety orange on matte white. The default look. */
   :root{
     color-scheme: light;
-    --bg:#FFFFFF; --card:#FFFFFF; --soft:#F6F6F4; --line:#EEEEEC; --line-strong:#DDDDDA;
-    --ink:#15171C; --dim:#5F6672;
-    --accent:#FF5A1F; --accent-ink:#2A1206; --accent-text:#C2410C;
-    --tint:#FFF1E9; --tint-ink:#9A3412;
-    --off-bg:#F1F1EF; --off-ink:#5F6672;
-    --travel-bg:#15171C; --travel-ink:#FFFFFF;
-    --track:#F1F1EF;
-    --shadow: 0 16px 36px rgba(21,23,28,0.07), 0 2px 6px rgba(21,23,28,0.04);
-    --shadow-sm: 0 6px 18px rgba(21,23,28,0.05);
-    --warn-bg:#FFF6DC; --warn-line:#EBCB73; --warn-ink:#5E4500;
+    --bg:#F7F6F3; --card:#FFFFFF; --soft:#F2F0EB; --line:#E7E5E0; --line-strong:#DAD7D0;
+    --ink:#14181F; --dim:#5A6270;
+    --accent:#FF5A00; --accent-ink:#1A0E05; --accent-text:#B23C00;
+    --tint:#FFEDE0; --tint-ink:#8A2E00;
+    --off-bg:#FFFFFF; --off-ink:#3B424D; --off-line:#DAD7D0;
+    --travel-bg:#1D3557; --travel-ink:#FFFFFF;
+    --track:#EFEDE8;
+    --alert-bg:#FF5A00; --alert-ink:#1A0E05; --alert-btn:#FFFFFF; --alert-btn-ink:#14181F; --alert-ic-bg:#1A0E05; --alert-ic:#FF5A00;
+    --nav-on-bg:#FF5A00; --nav-on-ink:#1A0E05;
+    --plus-bg:#FF5A00; --plus-ink:#1A0E05;
+    --seg-bg:#ECE9E3; --seg-on:#FFFFFF;
+    --shadow: 0 14px 30px rgba(20,24,31,0.06), 0 2px 4px rgba(20,24,31,0.04);
+    --shadow-sm: 0 6px 16px rgba(20,24,31,0.05);
     --danger:#B42318; --danger-line:#F0B8B2;
-    --bar:#FFFFFF; --seg-on:#FFFFFF;
-    --display:'Outfit', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
-    --body:'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --bar:#FFFFFF;
+    --display:'Barlow Semi Condensed', 'Arial Narrow', 'Roboto Condensed', system-ui, sans-serif;
+    --body:'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  /* Light: plain white, orange used more quietly. */
+  :root[data-theme="light"]{
+    --bg:#FFFFFF; --soft:#F5F5F3; --track:#F1F1EF;
+    --off-bg:#F2F2F0; --off-line:transparent;
+    --alert-bg:#FFEDE0; --alert-ink:#8A2E00; --alert-btn:#FFFFFF; --alert-btn-ink:#8A2E00; --alert-ic-bg:#FF5A00; --alert-ic:#1A0E05;
+    --nav-on-bg:#FFEDE0; --nav-on-ink:#8A2E00;
+    --plus-bg:#FFEDE0; --plus-ink:#8A2E00;
+    --seg-bg:#F1F1EF;
   }
   :root[data-theme="dark"]{
     color-scheme: dark;
     --bg:#0F1114; --card:#181B20; --soft:#1E2228; --line:#272B33; --line-strong:#383D47;
     --ink:#F3F3F1; --dim:#A1A7B1;
-    --accent:#FF6A33; --accent-ink:#1F0C03; --accent-text:#FF9063;
-    --tint:#3A1E11; --tint-ink:#FFB899;
-    --off-bg:#262A31; --off-ink:#AEB4BE;
-    --travel-bg:#F3F3F1; --travel-ink:#15171C;
+    --accent:#FF6A1A; --accent-ink:#1A0E05; --accent-text:#FF9A5C;
+    --tint:#3A1E0E; --tint-ink:#FFB98F;
+    --off-bg:#1E2228; --off-ink:#C0C6CF; --off-line:#383D47;
+    --travel-bg:#9DBBEA; --travel-ink:#0E1B2E;
     --track:#262A31;
-    --shadow: 0 16px 36px rgba(0,0,0,0.38);
-    --shadow-sm: 0 6px 18px rgba(0,0,0,0.3);
-    --warn-bg:#2E2610; --warn-line:#6B5514; --warn-ink:#F6E3A6;
+    --alert-bg:#FF6A1A; --alert-ink:#1A0E05; --alert-btn:#1A0E05; --alert-btn-ink:#FFFFFF; --alert-ic-bg:#1A0E05; --alert-ic:#FF6A1A;
+    --nav-on-bg:#FF6A1A; --nav-on-ink:#1A0E05;
+    --plus-bg:#FF6A1A; --plus-ink:#1A0E05;
+    --seg-bg:#262A31; --seg-on:#3A404B;
+    --shadow: 0 14px 30px rgba(0,0,0,0.38);
+    --shadow-sm: 0 6px 16px rgba(0,0,0,0.3);
     --danger:#FF8F85; --danger-line:#6A3432;
-    --bar:#14171B; --seg-on:#3A404B;
+    --bar:#14171B;
   }
   *{ box-sizing:border-box; }
   [hidden]{ display:none !important; }
+  .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   html,body{ margin:0; padding:0; }
   body{
     background: var(--bg);
     color: var(--ink);
     font-family: var(--body);
     font-size: 15px;
-    line-height: 1.45;
+    font-weight: 500;
+    line-height: 1.4;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -webkit-text-size-adjust: 100%;
@@ -80,206 +105,243 @@
   .wrap{
     max-width: 720px;
     margin: 0 auto;
-    padding: calc(28px + env(safe-area-inset-top)) 20px calc(112px + env(safe-area-inset-bottom));
+    padding: calc(24px + env(safe-area-inset-top)) 20px calc(112px + env(safe-area-inset-bottom));
   }
   @media (max-width: 360px){ .wrap{ padding-left: 14px; padding-right: 14px; } }
 
   /* ---- Screen header ---- */
-  .head{ display:flex; align-items:flex-end; justify-content:space-between; gap: 12px; margin-bottom: 18px; }
-  .head .cap{ font-size: 13px; font-weight: 600; color: var(--dim); letter-spacing: .2px; }
-  .head h1{ margin: 2px 0 0; font-family: var(--display); font-weight: 600; font-size: 32px; letter-spacing: -.6px; line-height: 1.1; }
+  .head{ display:flex; align-items:flex-end; justify-content:space-between; gap: 12px; margin-bottom: 16px; }
+  .head .cap{ font-size: 13px; font-weight: 600; color: var(--dim); }
+  .head h1{ margin: 2px 0 0; font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: .2px; line-height: 1.1; }
+  .head-side{ display:flex; align-items:center; gap: 10px; flex: none; }
+  .rot{ min-height: 44px; border: 0; background: none; padding: 0 2px; display:flex; flex-direction:column; align-items:flex-end; justify-content:center; text-align: right; border-radius: 10px; }
+  .rot .cap{ font-size: 12px; }
+  .rot .v{ font-family: var(--display); font-size: 18px; font-weight: 700; line-height: 1.1; white-space: nowrap; }
   .round{
-    width: 44px; height: 44px; border-radius: 22px; flex: none; padding: 0;
+    width: 44px; height: 44px; border-radius: 14px; flex: none; padding: 0;
     border: 1px solid var(--line); background: var(--card); color: var(--ink);
     display:flex; align-items:center; justify-content:center; box-shadow: var(--shadow-sm);
   }
-  .round:focus-visible, .chip:focus-visible, .btn:focus-visible, .tab-btn:focus-visible, .step:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+  .round:focus-visible, .rot:focus-visible, .chip:focus-visible, .btn:focus-visible, .tab-btn:focus-visible, .step:focus-visible, .theme-tile:focus-visible{ outline: 2.5px solid var(--ink); outline-offset: 2px; }
 
   /* ---- Cards ---- */
   .card{
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 28px;
+    border-radius: 24px;
     box-shadow: var(--shadow);
-    padding: 20px;
+    padding: 18px;
     margin-bottom: 14px;
   }
-  .card.flat{ background: var(--soft); border-color: transparent; box-shadow: none; }
-  .card h2{ margin: 0 0 14px; font-family: var(--display); font-size: 19px; font-weight: 500; letter-spacing: -.2px; }
-  .label, .field label{ font-size: 13px; font-weight: 700; color: var(--dim); }
-  .sub{ font-size: 13px; font-weight: 500; color: var(--dim); margin: -6px 0 14px; overflow-wrap: anywhere; }
+  .card h2, .tool h3{ margin: 0 0 12px; font-family: var(--body); font-size: 12px; font-weight: 700; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
+  .label, .field label{ font-size: 13px; font-weight: 600; color: var(--dim); }
+  .sub{ font-size: 13px; font-weight: 500; color: var(--dim); margin: -4px 0 12px; overflow-wrap: anywhere; }
 
-  /* ---- Reminder banner ---- */
+  /* ---- Crew change alert ---- */
   .banner{
     display:flex; align-items:center; gap: 12px;
-    background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink);
-    border-radius: 20px; padding: 12px 12px 12px 16px; margin-bottom: 14px;
-    font-size: 14px; font-weight: 600;
+    background: var(--alert-bg); color: var(--alert-ink);
+    border-radius: 18px; padding: 12px 12px 12px 14px; margin-bottom: 16px;
+    font-size: 13px; font-weight: 600;
+    box-shadow: 0 8px 20px rgba(255,90,0,0.20);
   }
-  .banner .grow{ flex: 1; }
-  .banner strong{ font-weight: 800; }
-  .banner button{ min-height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--warn-line); background: transparent; color: var(--warn-ink); font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .banner .b-ic{ width: 38px; height: 38px; border-radius: 12px; background: var(--alert-ic-bg); color: var(--alert-ic); display:flex; align-items:center; justify-content:center; flex: none; }
+  .banner .grow{ flex: 1; min-width: 0; }
+  .banner strong{ display:block; font-family: var(--display); font-size: 17px; font-weight: 700; letter-spacing: .2px; line-height: 1.2; }
+  .banner button{ min-height: 44px; padding: 0 14px; border-radius: 12px; border: 0; background: var(--alert-btn); color: var(--alert-btn-ink); font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .banner button:focus-visible{ outline: 2.5px solid var(--alert-ink); outline-offset: 2px; }
 
   /* ---- Add to Home screen ---- */
-  .install{ display:flex; align-items:center; gap: 14px; padding: 14px 14px 14px 16px; border-radius: 24px; background: var(--tint); border-color: transparent; box-shadow: none; }
+  .install{ display:flex; align-items:center; gap: 14px; padding: 14px 14px 14px 16px; border-radius: 20px; background: var(--tint); border-color: transparent; box-shadow: none; }
   .install img{ width: 48px; height: 48px; border-radius: 12px; flex: none; }
   .install .grow{ flex: 1; min-width: 0; }
-  .install .t{ font-size: 15px; font-weight: 800; color: var(--ink); }
+  .install .t{ font-size: 15px; font-weight: 700; color: var(--ink); }
   .install .s{ font-size: 13px; font-weight: 500; color: var(--tint-ink); margin-top: 1px; }
   .install .acts{ display:flex; flex-direction:column; gap: 6px; flex: none; }
-  .install .btn{ min-height: 40px; padding: 0 14px; border-radius: 14px; font-size: 13px; }
+  .install .btn{ min-height: 40px; padding: 0 14px; border-radius: 12px; font-size: 13px; }
   .install .btn.quiet{ border: 0; background: transparent; color: var(--tint-ink); min-height: 32px; }
   .share-glyph{ display:inline-block; vertical-align: -3px; }
 
   /* ---- Hero ---- */
-  .hero{ display:flex; flex-direction:column; align-items:center; gap: 16px; padding: 26px 20px 22px; border-radius: 32px; }
-  .ring-wrap{ position: relative; width: min(252px, 68vw); aspect-ratio: 1; }
+  .hero{ display:flex; flex-direction:column; align-items:center; gap: 14px; padding: 22px 18px 20px; border-radius: 28px; }
+  .ring-wrap{ position: relative; width: min(236px, 62vw); aspect-ratio: 1; }
   .ring-wrap svg{ width: 100%; height: 100%; }
-  .ring-track{ fill: none; stroke: var(--track); stroke-width: 14; }
-  .ring-arc{ fill: none; stroke: var(--accent); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray .5s ease; }
+  .ring-track{ fill: none; stroke: var(--track); stroke-width: 20; }
+  .ring-arc{ fill: none; stroke: var(--accent); stroke-width: 20; stroke-linecap: butt; transition: stroke-dasharray .5s ease; }
   @media (prefers-reduced-motion: reduce){ .ring-arc{ transition: none; } }
-  .ring-in{ position:absolute; inset: 0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 2px; padding: 0 30px; text-align: center; }
+  .ring-in{ position:absolute; inset: 0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align: center; }
   .big-number{
-    font-family: var(--display); font-weight: 300; font-size: clamp(84px, 30vw, 116px);
-    line-height: .95; letter-spacing: -.045em; font-variant-numeric: tabular-nums;
+    font-family: var(--display); font-weight: 700; font-size: clamp(62px, 23vw, 92px);
+    line-height: .92; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
   }
-  .big-number.long{ font-size: clamp(60px, 21vw, 84px); }
-  .hero-cap{ font-size: 14px; font-weight: 600; color: var(--dim); line-height: 1.25; }
-  .pill{
-    display:inline-flex; align-items:center; gap: 8px; padding: 9px 16px; border-radius: 999px;
-    background: var(--tint); color: var(--tint-ink); font-size: 13px; font-weight: 700;
+  .big-number.long{ font-size: clamp(44px, 16vw, 62px); line-height: 1; }
+  /* The caption has to stay inside the ring, so it is narrow, small and wraps to two lines. */
+  .hero-cap{ width: 48%; font-size: 12px; line-height: 1.25; font-weight: 700; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
+  .badges{ display:flex; flex-wrap:wrap; justify-content:center; gap: 8px; }
+  .badge{
+    display:inline-flex; align-items:center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 10px;
+    border: 1.5px solid var(--line-strong); background: var(--card); color: var(--dim);
+    font-family: var(--display); font-size: 15px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
   }
-  .pill .dot{ width: 8px; height: 8px; border-radius: 4px; background: var(--accent); }
-  .pill.off{ background: var(--off-bg); color: var(--ink); }
-  .pill.off .dot{ background: var(--dim); }
-  .pill.travel{ background: var(--travel-bg); color: var(--travel-ink); }
-  .pill.travel .dot{ background: var(--accent); }
+  .badge .dot{ width: 9px; height: 9px; border-radius: 5px; border: 1.5px solid currentColor; }
+  .badge.active{ font-weight: 700; }
+  .badge.active .dot{ background: currentColor; }
+  .badge.on.active{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .badge.off.active{ background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .badge.travel.active{ background: var(--travel-bg); border-color: var(--travel-bg); color: var(--travel-ink); }
+  .hero-day{ font-size: 14px; font-weight: 700; }
   .hero-sub{ font-size: 14px; font-weight: 500; color: var(--dim); text-align: center; }
   .hero-sub strong{ color: var(--ink); font-weight: 700; white-space: nowrap; }
 
   .pair{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
-  .mini{ border-radius: 24px; padding: 16px; margin: 0; box-shadow: var(--shadow-sm); display:flex; flex-direction:column; gap: 10px; }
+  .mini{ border-radius: 20px; padding: 14px 16px; margin: 0; box-shadow: var(--shadow-sm); display:flex; flex-direction:column; gap: 4px; }
+  .mini .label{ font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+  .mini .away{ font-size: 14px; font-weight: 600; color: var(--dim); }
+  .mini .away b{ font-family: var(--display); font-size: 34px; font-weight: 700; line-height: 1; color: var(--ink); margin: 0 3px; }
+  .mini .when{ font-size: 13px; font-weight: 600; }
   .icon{ width: 36px; height: 36px; border-radius: 12px; display:flex; align-items:center; justify-content:center; flex: none; }
   .icon.on{ background: var(--accent); color: var(--accent-ink); }
-  .icon.off{ background: var(--off-bg); color: var(--ink); }
+  .icon.off{ background: var(--soft); color: var(--ink); border: 1px solid var(--line-strong); }
   .icon.travel{ background: var(--travel-bg); color: var(--travel-ink); }
-  .mini .when{ font-family: var(--display); font-size: 19px; font-weight: 500; letter-spacing: -.2px; }
-  .mini .away{ font-size: 12px; font-weight: 700; color: var(--accent-text); }
-
-  .strip{ display:flex; align-items:center; justify-content:space-between; gap: 12px; padding: 14px 14px 14px 18px; border-radius: 24px; }
-  .strip .val{ font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
 
   /* ---- Chips and buttons ---- */
   .chips{ display:flex; flex-wrap:wrap; gap: 8px; }
   .chip{
-    min-height: 44px; padding: 0 16px; border-radius: 14px;
-    border: 1px solid var(--line-strong); background: var(--card); color: var(--ink);
-    font-size: 14px; font-weight: 700;
+    min-height: 44px; padding: 0 16px; border-radius: 12px;
+    border: 1.5px solid var(--line-strong); background: var(--card); color: var(--ink);
+    font-size: 14px; font-weight: 600;
   }
-  .chip.num{ font-family: var(--display); font-size: 16px; font-weight: 500; }
-  .chip.active{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .chip.num{ font-family: var(--display); font-size: 17px; font-weight: 700; }
+  .chip.active{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
   .chip:disabled{ opacity: .45; cursor: default; }
   .btn{
-    min-height: 48px; padding: 0 18px; border-radius: 16px;
-    border: 1px solid var(--line-strong); background: var(--card); color: var(--ink);
+    min-height: 48px; padding: 0 18px; border-radius: 14px;
+    border: 1.5px solid var(--line-strong); background: var(--card); color: var(--ink);
     font-size: 14px; font-weight: 700;
   }
-  .btn.primary{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: 0 10px 24px rgba(255,90,31,0.26); }
+  .btn.primary{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: 0 8px 20px rgba(255,90,0,0.24); }
   .btn.primary.saved{ background: var(--tint); border-color: var(--tint); color: var(--tint-ink); box-shadow: none; }
   .btn.danger{ color: var(--danger); border-color: var(--danger-line); }
   .btn.link{ border: 0; background: none; color: var(--dim); text-decoration: underline; padding: 0 6px; }
   .btn.full{ width: 100%; min-height: 54px; font-size: 16px; }
   .actions{ display:flex; flex-wrap:wrap; gap: 10px; align-items:center; }
-  .note, .hint{ font-size: 12.5px; font-weight: 500; color: var(--dim); margin-top: 10px; min-height: 16px; }
+  .note, .hint{ font-size: 13px; font-weight: 500; color: var(--dim); margin-top: 10px; min-height: 16px; }
   .note.warn{ color: var(--danger); font-weight: 700; }
 
-  /* ---- Rotation chips on Home ---- */
   .profiles{ margin-bottom: 14px; }
 
   /* ---- Form ---- */
   .rows{ display:flex; flex-direction:column; }
-  .rowline{ min-height: 68px; display:flex; align-items:center; justify-content:space-between; gap: 12px; border-top: 1px solid var(--line); }
+  .rowline{ min-height: 64px; display:flex; align-items:center; justify-content:space-between; gap: 12px; border-top: 1px solid var(--line); }
   .rowline:first-child{ border-top: 0; }
-  .rowline .t{ font-size: 16px; font-weight: 700; }
-  .rowline .s{ font-size: 12px; font-weight: 500; color: var(--dim); }
+  .rowline .t{ font-size: 16px; font-weight: 600; }
+  .rowline .s{ font-size: 13px; font-weight: 500; color: var(--dim); }
   .stepper{ display:flex; align-items:center; gap: 4px; flex: none; }
-  .step{ width: 44px; height: 44px; border-radius: 22px; border: 0; padding: 0; background: var(--off-bg); color: var(--ink); display:flex; align-items:center; justify-content:center; flex: none; }
-  .step.plus{ background: var(--tint); color: var(--tint-ink); }
+  .step{ width: 44px; height: 44px; border-radius: 12px; border: 0; padding: 0; background: var(--soft); color: var(--ink); display:flex; align-items:center; justify-content:center; flex: none; }
+  .step.plus{ background: var(--plus-bg); color: var(--plus-ink); }
   .stepper input{
-    width: 64px; height: 44px; border: 0; background: transparent; text-align: center; padding: 0;
-    font-family: var(--display); font-size: 28px; font-weight: 400; letter-spacing: -.5px; font-variant-numeric: tabular-nums;
+    width: 56px; height: 44px; border: 0; background: transparent; text-align: center; padding: 0;
+    font-family: var(--display); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums;
     -moz-appearance: textfield; appearance: textfield; border-radius: 10px;
   }
   .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
-  .field{ display:flex; flex-direction:column; gap: 8px; min-width: 0; }
+  .field{ display:flex; flex-direction:column; gap: 6px; min-width: 0; }
   .field + .field, .field + .grid2, .grid2 + .field, .rows + .field, .field + .rows{ margin-top: 16px; }
-  .input, textarea, select{
-    width: 100%; min-height: 54px; padding: 0 16px; border-radius: 16px;
-    border: 1px solid var(--line-strong); background: var(--card); color: var(--ink);
-    font-size: 16px; font-weight: 500;
-  }
-  .input.display{ font-family: var(--display); font-size: 18px; font-weight: 400; }
-  .input:focus-visible, textarea:focus-visible, select:focus-visible, .stepper input:focus-visible{ outline: 2px solid var(--accent); outline-offset: 1px; }
-  textarea{ min-height: 100px; padding: 12px 16px; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; resize: vertical; }
   .grid2 .field{ margin-top: 0; }
-  .grid2{ display:grid; align-items: end; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }
-  .seg{ padding: 4px; border-radius: 16px; background: var(--off-bg); display:grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
-  .seg button{ min-height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--dim); font-size: 14px; font-weight: 600; padding: 0 6px; }
-  .seg button.active{ background: var(--seg-on); color: var(--ink); font-weight: 700; box-shadow: 0 2px 6px rgba(21,23,28,0.10); }
-  .seg button:focus-visible{ outline: 2px solid var(--accent); outline-offset: 1px; }
+  .input, textarea, select{
+    width: 100%; min-height: 52px; padding: 0 14px; border-radius: 14px;
+    border: 1.5px solid var(--line-strong); background: var(--card); color: var(--ink);
+    font-size: 16px; font-weight: 600;
+  }
+  .input.display{ font-family: var(--display); font-size: 22px; font-weight: 700; }
+  .input:focus-visible, textarea:focus-visible, select:focus-visible, .stepper input:focus-visible{ outline: 2.5px solid var(--accent); outline-offset: 1px; }
+  textarea{ min-height: 100px; padding: 12px 14px; font-size: 12px; font-weight: 400; font-family: ui-monospace, Menlo, Consolas, monospace; resize: vertical; }
+  .grid2{ display:grid; align-items: end; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; }
+  .seg{ padding: 4px; border-radius: 16px; background: var(--seg-bg); display:grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
+  .seg button{ min-height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--off-ink); font-size: 15px; font-weight: 600; padding: 0 6px; }
+  .seg button.active{ background: var(--seg-on); color: var(--ink); font-weight: 700; box-shadow: 0 2px 6px rgba(20,24,31,0.10); }
+  .seg button:focus-visible{ outline: 2.5px solid var(--ink); outline-offset: 1px; }
+
+  /* ---- Appearance tiles ---- */
+  .themes{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  @media (min-width: 520px){ .themes{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .theme-tile{ padding: 8px 8px 10px; border-radius: 18px; border: 1.5px solid var(--line-strong); background: var(--card); color: var(--ink); display:flex; flex-direction:column; align-items:stretch; gap: 8px; font-size: 14px; font-weight: 600; text-align: center; }
+  .theme-tile.active{ border: 2.5px solid var(--ink); padding: 7px 7px 9px; font-weight: 700; }
+  .pv{ height: 54px; border-radius: 12px; padding: 8px; display:flex; flex-direction:column; gap: 5px; border: 1px solid #E7E5E0; overflow: hidden; }
+  .pv i{ display:block; height: 7px; border-radius: 4px; }
+  .pv i:nth-child(1){ width: 60%; } .pv i:nth-child(2){ width: 40%; } .pv i:nth-child(3){ margin-top: auto; width: 100%; height: 10px; border-radius: 5px; }
+  .pv.orange{ background:#F7F6F3; } .pv.orange i:nth-child(1){ background:#14181F; } .pv.orange i:nth-child(2){ background:#C9C5BD; } .pv.orange i:nth-child(3){ background:#FF5A00; }
+  .pv.light{ background:#FFFFFF; } .pv.light i:nth-child(1){ background:#14181F; } .pv.light i:nth-child(2){ background:#C9C5BD; } .pv.light i:nth-child(3){ background:#FFEDE0; }
+  .pv.dark{ background:#14181F; border-color:#14181F; } .pv.dark i:nth-child(1){ background:#F7F6F3; } .pv.dark i:nth-child(2){ background:#5A6270; } .pv.dark i:nth-child(3){ background:#FF6A1A; }
+  .pv.system{ background: linear-gradient(105deg, #F7F6F3 0 50%, #14181F 50% 100%); } .pv.system i:nth-child(1){ background:#14181F; width: 38%; } .pv.system i:nth-child(2){ background:#C9C5BD; width: 26%; } .pv.system i:nth-child(3){ background:#FF5A00; }
 
   /* ---- Calendar ---- */
-  .cal-legend{ display:flex; gap: 16px; flex-wrap: wrap; margin: 14px 0 0; font-size: 12.5px; font-weight: 700; color: var(--dim); }
+  .cal-legend{ display:flex; gap: 14px; flex-wrap: wrap; margin: 14px 0 0; font-size: 13px; font-weight: 600; color: var(--dim); }
   .cal-legend span{ display:flex; align-items:center; gap: 7px; }
-  .swatch{ width: 12px; height: 12px; border-radius: 6px; display:inline-block; }
+  .swatch{ width: 14px; height: 14px; border-radius: 4px; display:inline-block; }
   .swatch.on{ background: var(--accent); }
-  .swatch.off{ background: var(--off-bg); border: 1px solid var(--line-strong); }
+  .swatch.off{ background: var(--off-bg); border: 1.5px solid var(--line-strong); }
   .swatch.travel{ background: var(--travel-bg); }
-  .swatch.today{ background: transparent; border: 2px solid var(--ink); }
+  .swatch.today{ background: transparent; border: 2.5px solid var(--ink); }
   .months-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
-  .month-card{ background: var(--card); border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow-sm); padding: 18px 16px 16px; }
-  .month-card h3{ margin: 0 4px 12px; font-family: var(--display); font-size: 20px; font-weight: 500; letter-spacing: -.3px; }
-  .dow-row{ display:grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 8px; }
-  .dow-row span{ font-size: 11px; font-weight: 700; color: var(--dim); text-align:center; }
-  .day-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .month-card{ background: var(--card); border: 1px solid var(--line); border-radius: 26px; box-shadow: var(--shadow-sm); padding: 16px 14px 14px; }
+  .month-card h3{ margin: 0 4px 12px; font-family: var(--display); font-size: 22px; font-weight: 700; letter-spacing: .4px; }
+  .dow-row{ display:grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 8px; }
+  .dow-row span{ font-size: 12px; font-weight: 700; color: var(--dim); text-align:center; }
+  .day-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
   .day-cell{
-    aspect-ratio: 1; border-radius: 50%; display:flex; align-items:center; justify-content:center;
-    font-family: var(--display); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums;
+    aspect-ratio: 1; border-radius: 11px; display:flex; align-items:center; justify-content:center;
+    font-family: var(--display); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums;
+    border: 1.5px solid transparent;
   }
   .day-cell.empty{ visibility:hidden; }
   .day-cell.on{ background: var(--accent); color: var(--accent-ink); }
-  .day-cell.off{ background: var(--off-bg); color: var(--off-ink); }
+  .day-cell.off{ background: var(--off-bg); border-color: var(--off-line); color: var(--off-ink); font-weight: 600; }
   .day-cell.travel{ background: var(--travel-bg); color: var(--travel-ink); }
-  .day-cell.today{ box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink); font-weight: 700; }
+  .day-cell.today{ box-shadow: 0 0 0 2px var(--card), 0 0 0 4.5px var(--ink); }
+  .mpills{ display:flex; flex-wrap:wrap; gap: 6px; margin-top: 14px; }
+  .mpill{ flex: 1 1 0; min-width: 0; min-height: 40px; padding: 0 12px; border-radius: 20px; display:flex; align-items:center; justify-content:space-between; gap: 8px; font-size: 13px; font-weight: 700; border: 1.5px solid transparent; white-space: nowrap; }
+  .mpill b{ font-family: var(--display); font-size: 18px; font-weight: 700; }
+  .mpill.on{ background: var(--accent); color: var(--accent-ink); }
+  .mpill.off{ background: var(--off-bg); border-color: var(--line-strong); color: var(--off-ink); }
+  .mpill.travel{ background: var(--travel-bg); color: var(--travel-ink); }
 
   /* ---- Upcoming ---- */
   .upcoming-list{ display:flex; flex-direction:column; }
   .upcoming-item{ min-height: 62px; display:flex; align-items:center; gap: 14px; padding: 8px 0; border-top: 1px solid var(--line); }
   .upcoming-item:first-child{ border-top: 0; }
-  .upcoming-item .icon{ border-radius: 20px; width: 40px; height: 40px; }
   .upcoming-item .mid{ flex: 1; min-width: 0; }
   .upcoming-item .label{ font-size: 15px; font-weight: 700; }
   .upcoming-item .dates{ font-size: 13px; font-weight: 500; color: var(--dim); }
   .upcoming-item .dates a{ color: var(--accent-text); font-weight: 700; margin-left: 6px; white-space: nowrap; }
-  .upcoming-item .days-out{ font-family: var(--display); font-size: 15px; font-weight: 500; color: var(--dim); white-space: nowrap; }
+  .upcoming-item .days-out{ font-family: var(--display); font-size: 16px; font-weight: 700; color: var(--dim); white-space: nowrap; }
   .upcoming-item:first-child .days-out{ color: var(--accent-text); }
 
   /* ---- Tally ---- */
+  .earn{ padding: 14px; border-radius: 16px; background: var(--soft); display:flex; flex-direction:column; gap: 12px; margin-bottom: 14px; }
+  .earn-top{ display:flex; align-items:flex-end; justify-content:space-between; gap: 12px; }
+  .earn .k{ font-size: 12px; font-weight: 700; color: var(--dim); letter-spacing: .8px; text-transform: uppercase; }
+  .earn .big{ font-family: var(--display); font-size: 34px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .earn .mid{ font-family: var(--display); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .earn .bar{ height: 10px; border-radius: 5px; background: var(--line-strong); overflow: hidden; }
+  .earn .bar div{ height: 100%; background: var(--accent); }
+  .earn-stats{ display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .earn-stats b{ display:block; font-family: var(--display); font-size: 22px; font-weight: 700; }
+  .earn-stats span{ font-size: 12px; font-weight: 600; color: var(--dim); }
   .tally-wrap{ overflow-x: auto; }
   .tally{ width:100%; border-collapse: collapse; font-size: 14px; }
-  .tally th, .tally td{ padding: 12px 6px; text-align: right; border-bottom: 1px solid var(--line); }
+  .tally th, .tally td{ padding: 11px 6px; text-align: right; border-bottom: 1px solid var(--line); }
   .tally tr:last-child td{ border-bottom: 0; }
   .tally th:first-child, .tally td:first-child{ text-align: left; padding-left: 0; }
   .tally th{ font-size: 11px; font-weight: 700; color: var(--dim); vertical-align: bottom; line-height: 1.25; }
-  .tally td{ font-family: var(--display); font-size: 20px; font-weight: 400; font-variant-numeric: tabular-nums; }
-  .tally td:first-child{ font-family: var(--body); font-size: 14px; font-weight: 700; white-space: nowrap; }
-  .tally tr.money td{ font-size: 15px; font-weight: 500; color: var(--accent-text); }
+  .tally td{ font-family: var(--display); font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tally td:first-child{ font-family: var(--body); font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .tally tr.money td{ font-size: 16px; color: var(--accent-text); }
   .tally tr.money td:first-child{ color: var(--ink); white-space: normal; }
-  .tally .dot{ display:inline-block; width: 10px; height: 10px; border-radius: 5px; margin-right: 8px; }
+  .tally .dot{ display:inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 8px; }
 
-  .tool h3{ margin: 0 0 12px; font-family: var(--display); font-size: 19px; font-weight: 500; letter-spacing: -.2px; }
   footer{ margin: 22px 0 0; font-size: 12px; font-weight: 500; color: var(--dim); text-align:center; }
-  footer a{ color: var(--accent-text); }
+  footer a{ color: var(--accent-text); font-weight: 600; }
 
   /* ---- Bottom navigation ---- */
   .tabbar{
@@ -287,16 +349,16 @@
     background: var(--bar); border-top: 1px solid var(--line);
     padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
   }
-  .tabbar .in{ max-width: 720px; margin: 0 auto; display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .tabbar .in{ max-width: 720px; margin: 0 auto; display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tab-btn{
-    position: relative; min-height: 54px; border: 0; background: none; border-radius: 16px;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 3px;
-    color: var(--dim); font-size: 11px; font-weight: 600;
+    position: relative; min-height: 54px; border: 0; background: none; border-radius: 14px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 4px;
+    color: var(--dim); font-size: 12px; font-weight: 600;
   }
-  .tab-btn .ic{ width: 56px; height: 30px; border-radius: 15px; display:flex; align-items:center; justify-content:center; }
-  .tab-btn.active{ color: var(--ink); font-weight: 800; }
-  .tab-btn.active .ic{ background: var(--tint); color: var(--tint-ink); }
-  .tab-btn .flag{ position:absolute; top: 6px; left: calc(50% + 12px); width: 9px; height: 9px; border-radius: 5px; background: var(--accent); border: 2px solid var(--bar); box-sizing: content-box; }
+  .tab-btn .ic{ width: 60px; height: 30px; border-radius: 10px; display:flex; align-items:center; justify-content:center; }
+  .tab-btn.active{ color: var(--ink); font-weight: 700; }
+  .tab-btn.active .ic{ background: var(--nav-on-bg); color: var(--nav-on-ink); }
+  .tab-btn .flag{ position:absolute; top: 5px; left: calc(50% + 22px); width: 10px; height: 10px; border-radius: 5px; background: var(--ink); border: 2px solid var(--bar); box-sizing: content-box; }
 
   /* ---- Overlays: first-run setup and share picture ---- */
   .overlay{
@@ -308,12 +370,12 @@
   }
   .overlay.dim{ background: rgba(10,12,14,.72); }
   .sheet{ width: 100%; max-width: 460px; margin: auto 0; }
-  .sheet.card{ padding: 26px 22px 22px; border-radius: 32px; margin-bottom: 0; }
-  .sheet h2{ font-family: var(--display); font-size: 30px; font-weight: 600; letter-spacing: -.6px; margin: 6px 0 8px; line-height: 1.1; }
+  .sheet.card{ padding: 22px 18px 18px; border-radius: 28px; margin-bottom: 0; }
+  .sheet h2{ font-family: var(--display); font-size: 32px; font-weight: 700; letter-spacing: .2px; text-transform: none; color: var(--ink); margin: 6px 0 8px; line-height: 1.1; }
   .sheet p{ font-size: 15px; color: var(--dim); margin: 0 0 20px; }
-  .steps{ font-size: 13px; font-weight: 800; color: var(--accent-text); }
+  .steps{ font-size: 13px; font-weight: 700; color: var(--accent-text); letter-spacing: 1px; text-transform: uppercase; }
   .dots{ display:flex; gap: 6px; margin-bottom: 14px; }
-  .dots i{ width: 28px; height: 5px; border-radius: 3px; background: var(--off-bg); }
+  .dots i{ width: 28px; height: 6px; border-radius: 3px; background: var(--line-strong); }
   .dots i.on{ background: var(--accent); }
   .sheet .actions{ margin-top: 26px; justify-content: space-between; }
   .share-img{ display:block; width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--line); }
@@ -324,20 +386,28 @@
 
   <!-- ============ HOME ============ -->
   <section class="view" id="view-home">
+    <div class="banner" id="banner" hidden role="status">
+      <div class="b-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4.5M12 17.4v.1"/></svg></div>
+      <div class="grow" id="bannerText"></div>
+      <button type="button" id="bannerClose">Dismiss</button>
+    </div>
+
     <div class="head">
       <div>
         <div class="cap" id="todayLine"></div>
         <h1>Hitch Countdown</h1>
       </div>
-      <button type="button" class="round" id="themeQuick" aria-label="Switch to dark mode">
-        <svg id="themeIconMoon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
-        <svg id="themeIconSun" hidden aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-      </button>
-    </div>
-
-    <div class="banner" id="banner" hidden role="status">
-      <div class="grow" id="bannerText"></div>
-      <button type="button" id="bannerClose">Dismiss</button>
+      <div class="head-side">
+        <button type="button" class="rot" id="editBtn" aria-label="Edit rotation">
+          <span class="cap">Rotation</span>
+          <span class="v" id="rotChip">14 / 14</span>
+          <span class="sr" id="setupHint"></span>
+        </button>
+        <button type="button" class="round" id="themeQuick" aria-label="Switch to dark mode">
+          <svg id="themeIconMoon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+          <svg id="themeIconSun" hidden aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="card install" id="installCard" hidden>
@@ -357,29 +427,26 @@
     </div>
 
     <div class="card hero" id="hero">
-      <div class="ring-wrap">
-        <svg viewBox="0 0 252 252" id="ring" role="img" aria-label="Progress">
-          <circle class="ring-track" cx="126" cy="126" r="112"/>
-          <circle class="ring-arc" id="ringArc" cx="126" cy="126" r="112" stroke-dasharray="0 703.7" transform="rotate(-90 126 126)"/>
+      <div class="ring-wrap" id="ringWrap">
+        <svg viewBox="0 0 236 236" id="ring" role="img" aria-label="Progress">
+          <circle class="ring-track" cx="118" cy="118" r="100"/>
+          <circle class="ring-arc" id="ringArc" cx="118" cy="118" r="100" stroke-dasharray="0 628.3" transform="rotate(-90 118 118)"/>
         </svg>
         <div class="ring-in">
           <div class="big-number" id="bigNumber">--</div>
           <div class="hero-cap" id="heroCap"></div>
         </div>
       </div>
-      <div class="pill" id="pill"><span class="dot" aria-hidden="true"></span><span id="phaseLabel">Loading</span><span aria-hidden="true">·</span><span id="progLeft"></span></div>
+      <div class="badges" role="group" aria-label="Status">
+        <div class="badge on" id="badgeOn"><span class="dot" aria-hidden="true"></span><span>On hitch</span></div>
+        <div class="badge off" id="badgeOff"><span class="dot" aria-hidden="true"></span><span>Off hitch</span></div>
+        <div class="badge travel" id="badgeTravel" hidden><span class="dot" aria-hidden="true"></span><span>Travel day</span></div>
+      </div>
+      <div class="hero-day"><span class="sr" id="phaseLabel">Loading</span><span id="progLeft"></span></div>
       <div class="hero-sub" id="heroSub"></div>
     </div>
 
     <div class="pair" id="nextPair"></div>
-
-    <div class="card flat strip">
-      <div>
-        <div class="label">Rotation</div>
-        <div class="val" id="setupHint"></div>
-      </div>
-      <button type="button" class="btn" id="editBtn">Edit</button>
-    </div>
 
     <div class="card">
       <h2>Upcoming crew changes</h2>
@@ -409,29 +476,12 @@
     <div class="months-grid" id="monthsGrid"></div>
   </section>
 
-  <!-- ============ TALLY ============ -->
-  <section class="view" id="view-tally" hidden>
-    <div class="head">
-      <div>
-        <div class="cap" id="tallySub"></div>
-        <h1>Tally</h1>
-      </div>
-    </div>
-    <div class="card">
-      <div class="tally-wrap"><table class="tally">
-        <thead><tr><th></th><th id="tallyH1">This year so far</th><th id="tallyH2">Full year</th><th>Next 12 months</th></tr></thead>
-        <tbody id="tallyBody"></tbody>
-      </table></div>
-    </div>
-    <div class="note" id="tallyNote"></div>
-  </section>
-
   <!-- ============ SETTINGS ============ -->
   <section class="view" id="view-settings" hidden>
     <div class="head">
       <div>
         <div class="cap">Everything stays on this phone</div>
-        <h1>Settings</h1>
+        <h1>Settings &amp; Tally</h1>
       </div>
     </div>
 
@@ -516,7 +566,7 @@
           <button type="button" class="pay-btn" data-pay="1">Yes</button>
         </div>
       </div>
-      <div class="hint">The day rate is only used for the estimate on the Tally screen. It never leaves this phone.</div>
+      <div class="hint">The day rate is only used for the estimates in the Tally below. It never leaves this phone.</div>
       <div style="margin-top:18px;">
         <button type="button" class="btn primary full" id="saveBtn">Save rotation to this device</button>
       </div>
@@ -528,12 +578,31 @@
       </div>
     </div>
 
+    <div class="card" id="tallyCard">
+      <h2>Tally</h2>
+      <div class="sub" id="tallySub"></div>
+      <div class="earn" id="earnBlock" hidden>
+        <div class="earn-top">
+          <div><div class="k" id="earnK1">This hitch so far</div><div class="big" id="earnV1"></div></div>
+          <div><div class="k" style="text-align:right">Full hitch</div><div class="mid" id="earnV2"></div></div>
+        </div>
+        <div class="bar" id="earnBarWrap" role="img" aria-label="Hitch progress"><div id="earnBar" style="width:0%"></div></div>
+        <div class="earn-stats" id="earnStats"></div>
+      </div>
+      <div class="tally-wrap"><table class="tally">
+        <thead><tr><th></th><th id="tallyH1">This year so far</th><th id="tallyH2">Full year</th><th>Next 12 months</th></tr></thead>
+        <tbody id="tallyBody"></tbody>
+      </table></div>
+      <div class="note" id="tallyNote"></div>
+    </div>
+
     <div class="card tool">
       <h3>Appearance</h3>
-      <div class="seg" id="themes" role="group" aria-label="Appearance">
-        <button type="button" class="theme-btn" data-theme-choice="light">Light</button>
-        <button type="button" class="theme-btn" data-theme-choice="dark">Dark</button>
-        <button type="button" class="theme-btn" data-theme-choice="system">Match phone</button>
+      <div class="themes" id="themes" role="group" aria-label="Appearance">
+        <button type="button" class="theme-btn theme-tile" data-theme-choice="orange"><span class="pv orange" aria-hidden="true"><i></i><i></i><i></i></span>Orange-White</button>
+        <button type="button" class="theme-btn theme-tile" data-theme-choice="light"><span class="pv light" aria-hidden="true"><i></i><i></i><i></i></span>Light</button>
+        <button type="button" class="theme-btn theme-tile" data-theme-choice="dark"><span class="pv dark" aria-hidden="true"><i></i><i></i><i></i></span>Dark</button>
+        <button type="button" class="theme-btn theme-tile" data-theme-choice="system"><span class="pv system" aria-hidden="true"><i></i><i></i><i></i></span>Match phone</button>
       </div>
     </div>
 
@@ -593,7 +662,7 @@
 
     <footer>
       Appearance, reminder, widget and backup take effect straight away. Only Rotation needs the Save button.<br><br>
-      v2.2 &nbsp;·&nbsp; Developed by Dixit Suthar &nbsp;·&nbsp; <a href="mailto:Dxsuthar009@gmail.com">Dxsuthar009@gmail.com</a><br>
+      v2.3 &nbsp;·&nbsp; Developed by Dixit Suthar &nbsp;·&nbsp; <a href="mailto:Dxsuthar009@gmail.com">Dxsuthar009@gmail.com</a><br>
       © 2026 Dixit Suthar. All rights reserved. &nbsp;·&nbsp; <a href="LICENSE.txt">Licence</a> &nbsp;·&nbsp; <a href="privacy-policy.html">Privacy</a>
     </footer>
   </section>
@@ -602,19 +671,15 @@
 <nav class="tabbar" aria-label="Main">
   <div class="in">
     <button type="button" class="tab-btn active" data-tab="home" aria-current="page">
-      <span class="ic"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
-      <span>Home</span>
+      <span class="ic"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg></span>
+      <span>Countdown</span>
     </button>
     <button type="button" class="tab-btn" data-tab="calendar">
-      <span class="ic"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+      <span class="ic"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
       <span>Calendar</span>
     </button>
-    <button type="button" class="tab-btn" data-tab="tally">
-      <span class="ic"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></span>
-      <span>Tally</span>
-    </button>
     <button type="button" class="tab-btn" data-tab="settings">
-      <span class="ic"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h8M18 7h2M4 17h2M12 17h8"/><circle cx="15" cy="7" r="2.5"/><circle cx="9" cy="17" r="2.5"/></svg></span>
+      <span class="ic"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h8M18 7h2M4 17h2M12 17h8"/><circle cx="15" cy="7" r="2.5"/><circle cx="9" cy="17" r="2.5"/></svg></span>
       <span>Settings</span>
       <span class="flag" id="unsavedFlag" hidden aria-label="Unsaved changes"></span>
     </button>
@@ -722,8 +787,8 @@
   const INSTALL_KEY = 'hitch-install-dismissed';
   const MAX_PROFILES = 6;
   const REMIND_CHOICES = [0, 1, 3, 7];
-  const THEMES = ['light', 'dark', 'system'];
-  const RING = 2 * Math.PI * 112;
+  const THEMES = ['orange', 'light', 'dark', 'system'];
+  const RING = 2 * Math.PI * 100;
 
   const $ = id => document.getElementById(id);
 
@@ -817,12 +882,13 @@
     if(!profiles.length) profiles = [defaultProfile()];
     const has = id => profiles.some(p => p.id === id);
     return {
-      v: 2,
+      v: 3,
       profiles,
       activeId: has(d.activeId) ? d.activeId : profiles[0].id,
       widgetId: has(d.widgetId) ? d.widgetId : 'active',
       remindDays: REMIND_CHOICES.indexOf(Number(d.remindDays)) >= 0 ? Number(d.remindDays) : 3,
-      theme: THEMES.indexOf(d.theme) >= 0 ? d.theme : 'light'
+      // 'light' saved before v3 was simply the default look, which is now Orange-White
+      theme: (THEMES.indexOf(d.theme) >= 0 && !(d.theme === 'light' && !(Number(d.v) >= 3))) ? d.theme : 'orange'
     };
   }
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
@@ -863,14 +929,17 @@
 
   /* ================= Light and dark ================= */
   const darkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  const THEME_COLOR = { orange: '#F7F6F3', light: '#FFFFFF', dark: '#0F1114' };
+  let lastBright = 'orange';     // what the sun/moon button goes back to from dark
   function resolvedTheme(){
-    if(data.theme === 'system') return darkQuery && darkQuery.matches ? 'dark' : 'light';
+    if(data.theme === 'system') return darkQuery && darkQuery.matches ? 'dark' : 'orange';
     return data.theme;
   }
   function applyTheme(){
     const t = resolvedTheme();
+    if(t !== 'dark') lastBright = t;
     document.documentElement.setAttribute('data-theme', t);
-    $('themeColor').setAttribute('content', t === 'dark' ? '#0F1114' : '#FFFFFF');
+    $('themeColor').setAttribute('content', THEME_COLOR[t]);
     $('themeIconMoon').toggleAttribute('hidden', t === 'dark');
     $('themeIconSun').toggleAttribute('hidden', t !== 'dark');
     $('themeQuick').setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
@@ -881,12 +950,12 @@
     });
   }
   async function setTheme(choice){
-    data.theme = THEMES.indexOf(choice) >= 0 ? choice : 'light';
+    data.theme = THEMES.indexOf(choice) >= 0 ? choice : 'orange';
     applyTheme();
     await persist();
   }
   document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', ()=> setTheme(b.dataset.themeChoice)));
-  $('themeQuick').addEventListener('click', ()=> setTheme(resolvedTheme() === 'dark' ? 'light' : 'dark'));
+  $('themeQuick').addEventListener('click', ()=> setTheme(resolvedTheme() === 'dark' ? lastBright : 'dark'));
   if(darkQuery){
     const onSystemChange = ()=>{ if(data.theme === 'system') applyTheme(); };
     if(darkQuery.addEventListener) darkQuery.addEventListener('change', onSystemChange);
@@ -990,30 +1059,31 @@
     const s = draft;
     const today = new Date();
     const p = phaseAt(s, today);
+    // Captions sit inside the ring, so they are kept to a few short words.
     let count, sub, label, cap;
     if(p.kind === 'on'){
       count = p.left;
       label = 'On hitch';
-      cap = 'day'+plural(count)+' to crew change';
+      cap = 'day'+plural(count)+' left on hitch';
       sub = 'Crew change: <strong>'+fmtDate(addDays(today, p.left))+'</strong>';
       if(s.travelHome > 0) sub += ' &nbsp;·&nbsp; Home: <strong>'+fmtDate(addDays(today, p.left + s.travelHome))+'</strong>';
       if(shiftText(s)) sub += ' &nbsp;·&nbsp; '+shiftText(s);
     } else if(p.kind === 'travelHome'){
       count = p.left;
       label = 'Travelling home';
-      cap = 'day'+plural(count)+' until you are home';
+      cap = 'day'+plural(count)+' until home';
       sub = 'Home: <strong>'+fmtDate(addDays(today, p.left))+'</strong>';
     } else if(p.kind === 'off'){
       count = p.toHitch;
       label = 'Off hitch';
-      cap = 'day'+plural(count)+' until back to the field';
+      cap = 'day'+plural(count)+' until hitch';
       sub = s.travelOut > 0
         ? 'Leave home: <strong>'+fmtDate(addDays(today, p.left))+'</strong> &nbsp;·&nbsp; Hitch starts: <strong>'+fmtDate(addDays(today, p.toHitch))+'</strong>'
         : 'Crew change: <strong>'+fmtDate(addDays(today, p.toHitch))+'</strong>';
     } else {
       count = p.left;
       label = 'Travelling out';
-      cap = 'day'+plural(count)+' until the hitch starts';
+      cap = 'day'+plural(count)+' until hitch';
       sub = 'Hitch starts: <strong>'+fmtDate(addDays(today, p.left))+'</strong>';
     }
     const num = $('bigNumber');
@@ -1023,7 +1093,11 @@
     $('heroSub').innerHTML = sub;
     $('phaseLabel').textContent = label;
     $('progLeft').textContent = 'Day '+p.day+' of '+p.total;
-    $('pill').className = 'pill ' + tone(p.kind);
+    const kind = tone(p.kind);
+    $('badgeOn').classList.toggle('active', kind === 'on');
+    $('badgeOff').classList.toggle('active', kind === 'off');
+    $('badgeTravel').classList.toggle('active', kind === 'travel');
+    $('badgeTravel').hidden = kind !== 'travel';
     const pct = p.day / p.total;
     $('ringArc').setAttribute('stroke-dasharray', (pct * RING).toFixed(1)+' '+RING.toFixed(1));
     $('ring').setAttribute('aria-label', label+', day '+p.day+' of '+p.total);
@@ -1041,7 +1115,7 @@
     try{ dismissed = window.localStorage.getItem(DISMISS_KEY); }catch(e){}
     if(dismissed === stamp) return;
     const when = next.daysOut === 1 ? 'tomorrow' : 'in '+next.daysOut+' days';
-    $('bannerText').innerHTML = '<strong>'+changeLabel(next)+' '+when+'</strong> — '+fmtDate(next.date);
+    $('bannerText').innerHTML = '<strong>'+changeLabel(next)+' '+when+'</strong><span class="sr"> — </span>'+fmtDate(next.date);
     banner.dataset.stamp = stamp;
     banner.hidden = false;
   }
@@ -1089,6 +1163,8 @@
     $('calSub').textContent = rotationSummary(s)+' — from '+fmtDate(parseDate(s.startDate));
     $('legendTravel').style.display = (s.travelOut || s.travelHome) ? '' : 'none';
     $('setupHint').textContent = rotationSummary(s);
+    $('rotChip').textContent = s.onDays+' / '+s.offDays;
+    const showTravel = !!(s.travelOut || s.travelHome);
 
     for(let m=0; m<12; m++){
       const monthDate = new Date(today.getFullYear(), today.getMonth()+m, 1);
@@ -1113,15 +1189,25 @@
         c.className = 'day-cell empty';
         dayGrid.appendChild(c);
       }
+      const n = { on: 0, off: 0, travel: 0 };
       for(let day=1; day<=daysInMonth; day++){
         const d = new Date(monthDate.getFullYear(), monthDate.getMonth(), day);
         const c = document.createElement('div');
-        c.className = 'day-cell '+tone(phaseAt(s, d).kind);
+        const kind = tone(phaseAt(s, d).kind);
+        n[kind]++;
+        c.className = 'day-cell '+kind;
         if(daysBetween(today,d)===0) c.className += ' today';
         c.textContent = day;
         dayGrid.appendChild(c);
       }
       card.appendChild(dayGrid);
+      // status pills with this month's day counts
+      const pills = document.createElement('div');
+      pills.className = 'mpills';
+      pills.innerHTML = '<div class="mpill on"><span>On hitch</span><b>'+n.on+'</b></div>'+
+                        '<div class="mpill off"><span>Off hitch</span><b>'+n.off+'</b></div>'+
+                        (showTravel ? '<div class="mpill travel"><span>Travel</span><b>'+n.travel+'</b></div>' : '');
+      card.appendChild(pills);
       grid.appendChild(card);
     }
   }
@@ -1149,10 +1235,9 @@
       const card = document.createElement('div');
       card.className = 'card mini';
       card.innerHTML =
-        '<div class="icon '+tone(ch.kind)+'">'+ICONS[tone(ch.kind)]+'</div>'+
-        '<div><div class="label">'+changeLabel(ch)+'</div>'+
-        '<div class="when">'+fmtDate(ch.date)+'</div>'+
-        '<div class="away">in '+ch.daysOut+' day'+plural(ch.daysOut)+'</div></div>';
+        '<div class="label">'+changeLabel(ch)+'</div>'+
+        '<div class="away">in <b>'+ch.daysOut+'</b> day'+plural(ch.daysOut)+'</div>'+
+        '<div class="when">'+fmtDate(ch.date)+'</div>';
       pair.appendChild(card);
     });
     changes.forEach(ch=>{
@@ -1198,6 +1283,35 @@
       note = 'One full hitch is '+paid+' paid day'+plural(paid)+', about '+money(s, paid * s.dayRate)+'. Estimate only, before tax and deductions. ' + note;
     }
     $('tallyNote').textContent = note;
+
+    // Earnings for the hitch in hand, shown only when a day rate is set
+    const earn = $('earnBlock');
+    earn.hidden = !(s.dayRate > 0);
+    if(s.dayRate > 0){
+      const p = phaseAt(s, today);
+      const travelPay = s.payTravel ? (s.travelOut + s.travelHome) : 0;
+      const full = (s.onDays + travelPay) * s.dayRate;
+      const homeDays = s.offDays - s.travelOut - s.travelHome;
+      $('earnV2').textContent = money(s, full);
+      if(p.kind === 'on'){
+        const soFar = (p.day + (s.payTravel ? s.travelOut : 0)) * s.dayRate;
+        $('earnK1').textContent = 'This hitch so far';
+        $('earnV1').textContent = money(s, soFar);
+        $('earnBarWrap').hidden = false;
+        $('earnBar').style.width = (p.day / s.onDays * 100).toFixed(1)+'%';
+        $('earnBarWrap').setAttribute('aria-label', p.day+' of '+s.onDays+' days worked');
+        $('earnStats').innerHTML = '<div><b>'+p.day+'</b><span>day'+plural(p.day)+' worked</span></div>'+
+          '<div><b>'+(s.onDays - p.day)+'</b><span>day'+plural(s.onDays - p.day)+' to go</span></div>'+
+          '<div><b>'+homeDays+'</b><span>day'+plural(homeDays)+' home next</span></div>';
+      } else {
+        $('earnK1').textContent = 'Next hitch';
+        $('earnV1').textContent = money(s, full);
+        $('earnBarWrap').hidden = true;
+        $('earnStats').innerHTML = '<div><b>'+p.toHitch+'</b><span>day'+plural(p.toHitch)+' until hitch</span></div>'+
+          '<div><b>'+s.onDays+'</b><span>days on</span></div>'+
+          '<div><b>'+homeDays+'</b><span>day'+plural(homeDays)+' home after</span></div>';
+      }
+    }
   }
 
   function updateControls(){
@@ -1486,13 +1600,13 @@
   let shareBlob = null, shareUrl = null;
   async function buildShareImage(s){
     if(document.fonts && document.fonts.load){
-      try{ await Promise.all([document.fonts.load('600 64px Outfit'), document.fonts.load('600 20px Manrope')]); }catch(e){}
+      try{ await Promise.all([document.fonts.load('700 64px "Barlow Semi Condensed"'), document.fonts.load('600 20px Barlow')]); }catch(e){}
     }
     const css = getComputedStyle(document.documentElement);
     const v = n => css.getPropertyValue(n).trim();
-    const C = { bg: v('--bg'), ink: v('--ink'), dim: v('--dim'), on: v('--accent'), onInk: v('--accent-ink'),
-                off: v('--off-bg'), offInk: v('--off-ink'), travel: v('--travel-bg'), travelInk: v('--travel-ink'),
-                accentText: v('--accent-text'), line: v('--line-strong') };
+    const C = { bg: v('--bg'), card: v('--card'), ink: v('--ink'), dim: v('--dim'), on: v('--accent'), onInk: v('--accent-ink'),
+                off: v('--off-bg'), offInk: v('--off-ink'), offLine: v('--off-line'), travel: v('--travel-bg'), travelInk: v('--travel-ink'),
+                line: v('--line-strong') };
     const W = 1080, PAD = 56, COLS = 3, GAP = 28;
     const colW = (W - 2*PAD - (COLS-1)*GAP) / COLS;
     const CG = 5, cell = Math.floor((colW - 6*CG) / 7);
@@ -1502,33 +1616,38 @@
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const g = cv.getContext('2d');
-    const body = 'Manrope, system-ui, sans-serif', disp = 'Outfit, system-ui, sans-serif';
+    const body = 'Barlow, system-ui, sans-serif', disp = '"Barlow Semi Condensed", system-ui, sans-serif';
+    const box = (x, y, w, h, r) => {
+      g.beginPath();
+      if(g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h);
+    };
     g.fillStyle = C.bg; g.fillRect(0,0,W,H);
-    g.fillStyle = C.on; g.fillRect(PAD, 62, 64, 10);
+    g.fillStyle = C.on; box(PAD, 60, 72, 12, 6); g.fill();
 
     g.textBaseline = 'alphabetic';
-    g.fillStyle = C.ink; g.font = '600 72px '+disp;
-    g.fillText('Hitch schedule', PAD, 158);
+    g.fillStyle = C.ink; g.font = '700 76px '+disp;
+    g.fillText('Hitch schedule', PAD, 160);
     g.fillStyle = C.dim; g.font = '600 26px '+body;
     g.fillText((data.profiles.length > 1 ? s.name+' · ' : '')+rotationSummary(s), PAD, 204);
     // legend
     let lx = PAD;
-    const legend = [['On hitch', C.on], ['Off hitch', C.off]];
-    if(s.travelOut || s.travelHome) legend.push(['Travel day', C.travel]);
-    g.font = '700 21px '+body;
+    const legend = [['On hitch', C.on, null], ['Off hitch', C.off, C.line]];
+    if(s.travelOut || s.travelHome) legend.push(['Travel day', C.travel, null]);
+    g.font = '600 22px '+body;
     legend.forEach(l=>{
-      g.fillStyle = l[1]; g.beginPath(); g.arc(lx+11, 243, 11, 0, Math.PI*2); g.fill();
-      if(l[1] === C.off){ g.strokeStyle = C.line; g.lineWidth = 1.5; g.stroke(); }
-      g.fillStyle = C.dim; g.fillText(l[0], lx+32, 251);
-      lx += 32 + g.measureText(l[0]).width + 36;
+      g.fillStyle = l[1]; box(lx, 232, 24, 24, 6); g.fill();
+      if(l[2]){ g.strokeStyle = l[2]; g.lineWidth = 2; g.stroke(); }
+      g.fillStyle = C.dim; g.fillText(l[0], lx+34, 252);
+      lx += 34 + g.measureText(l[0]).width + 36;
     });
 
     const today = new Date();
+    const outlined = C.offLine && C.offLine !== 'transparent';
     for(let m=0; m<12; m++){
       const md = new Date(today.getFullYear(), today.getMonth()+m, 1);
       const x0 = PAD + (m % COLS) * (colW + GAP);
       const y0 = headH + Math.floor(m / COLS) * monthH;
-      g.fillStyle = C.ink; g.font = '500 28px '+disp;
+      g.fillStyle = C.ink; g.font = '700 30px '+disp;
       g.textAlign = 'left';
       g.fillText(MONTHS[md.getMonth()]+' '+md.getFullYear(), x0, y0 + 30);
       g.font = '700 14px '+body; g.fillStyle = C.dim; g.textAlign = 'center';
@@ -1537,16 +1656,17 @@
       const dim = new Date(md.getFullYear(), md.getMonth()+1, 0).getDate();
       for(let day=1; day<=dim; day++){
         const idx = first + day - 1;
-        const cx = x0 + (idx % 7) * (cell+CG) + cell/2;
-        const cy = y0 + 76 + Math.floor(idx / 7) * (cell+CG) + cell/2;
+        const x = x0 + (idx % 7) * (cell+CG);
+        const y = y0 + 76 + Math.floor(idx / 7) * (cell+CG);
         const d = new Date(md.getFullYear(), md.getMonth(), day);
         const kind = tone(phaseAt(s, d).kind);
         g.fillStyle = kind === 'on' ? C.on : kind === 'off' ? C.off : C.travel;
-        g.beginPath(); g.arc(cx, cy, cell/2, 0, Math.PI*2); g.fill();
-        if(daysBetween(today, d) === 0){ g.strokeStyle = C.ink; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, cell/2 + 3.5, 0, Math.PI*2); g.stroke(); }
+        box(x, y, cell, cell, 9); g.fill();
+        if(kind === 'off' && outlined){ g.strokeStyle = C.offLine; g.lineWidth = 2; box(x+1, y+1, cell-2, cell-2, 8); g.stroke(); }
+        if(daysBetween(today, d) === 0){ g.strokeStyle = C.ink; g.lineWidth = 4; box(x-4, y-4, cell+8, cell+8, 12); g.stroke(); }
         g.fillStyle = kind === 'on' ? C.onInk : kind === 'off' ? C.offInk : C.travelInk;
-        g.font = '500 17px '+disp;
-        g.fillText(String(day), cx, cy + 6);
+        g.font = (kind === 'off' ? '600' : '700')+' 19px '+disp;
+        g.fillText(String(day), x + cell/2, y + cell/2 + 7);
       }
     }
     g.textAlign = 'left';
@@ -1581,7 +1701,7 @@
     const inner = parsed && parsed.data ? parsed.data : parsed;
     let next = null;
     if(inner && Array.isArray(inner.profiles) && inner.profiles.length) next = normalizeData(inner);
-    else if(inner && inner.onDays && inner.offDays && inner.startDate) next = normalizeData({ profiles: [inner], theme: data.theme });   // v1.x format
+    else if(inner && inner.onDays && inner.offDays && inner.startDate) next = normalizeData({ profiles: [inner], theme: data.theme, v: 3 });   // v1.x format
     if(!next){
       setNote($('backupNote'), 'That is not a Hitch Countdown backup. Nothing was changed.', true);
       return false;

@@ -2,11 +2,12 @@
    Offline cache.
    Pages are fetched fresh when there is signal and fall back to the saved copy when there is not.
    Fonts and icons are served from the saved copy. Bump CACHE when those files change. */
-const CACHE = 'hitch-countdown-v2.2';
+const CACHE = 'hitch-countdown-v2.3';
 const ASSETS = [
   './', 'index.html', 'widget.html', 'privacy-policy.html', 'LICENSE.txt', 'manifest.webmanifest',
   'icon.png', 'icon-180.png', 'icon-192.png', 'icon-512.png',
-  'fonts/outfit.woff2', 'fonts/manrope.woff2'
+  'fonts/barlow-400.woff2', 'fonts/barlow-500.woff2', 'fonts/barlow-600.woff2', 'fonts/barlow-700.woff2',
+  'fonts/barlow-semi-condensed-600.woff2', 'fonts/barlow-semi-condensed-700.woff2'
 ];
 
 self.addEventListener('install', event => {
